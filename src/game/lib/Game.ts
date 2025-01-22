@@ -6,8 +6,4 @@ export default class Game {
   constructor() {
     this.game = new Phaser.Game(configs);
   }
-
-  preload() {}
-
-  create() {}
 }

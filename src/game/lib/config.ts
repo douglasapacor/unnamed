@@ -1,3 +1,5 @@
+import Start from "../scenes/Start";
+
 const configs: Phaser.Types.Core.GameConfig = {
   title: "uknownProject",
   parent: "game",
@@ -8,7 +10,7 @@ const configs: Phaser.Types.Core.GameConfig = {
     antialias: false,
   },
   type: Phaser.AUTO,
-  //   scene: [SceneMain],
+  scene: [Start],
   scale: {
     mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
