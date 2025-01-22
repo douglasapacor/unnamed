@@ -1,21 +1,27 @@
 import { app, BrowserWindow } from "electron";
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+import path from "path";
+import started from "electron-squirrel-startup";
 
-if (require("electron-squirrel-startup")) {
+if (started) {
   app.quit();
 }
 
-const createWindow = (): void => {
+const createWindow = () => {
   const mainWindow = new BrowserWindow({
-    height: 600,
     width: 800,
+    height: 600,
     webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL)
+    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  else
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+    );
+
   mainWindow.webContents.openDevTools();
 };
 

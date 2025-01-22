@@ -1,22 +1,15 @@
 {
   "compilerOptions": {
-    "lib": ["es6", "dom", "dom.iterable", "scripthost"],
-    "target": "ES6",
-    "allowJs": true,
+    "target": "ESNext",
     "module": "commonjs",
+    "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "types": ["Phaser"],
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/phaser/types"],
-    "paths": {
-      "*": ["node_modules/*"]
-    }
-  },
-  "include": ["src/**/*"]
+    "resolveJsonModule": true
+  }
 }
