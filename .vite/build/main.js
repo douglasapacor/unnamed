@@ -472,9 +472,7 @@ var check = function() {
 };
 var electronSquirrelStartup = check();
 const started = /* @__PURE__ */ getDefaultExportFromCjs(electronSquirrelStartup);
-if (started) {
-  require$$3$1.app.quit();
-}
+if (started) require$$3$1.app.quit();
 const createWindow = () => {
   const mainWindow = new require$$3$1.BrowserWindow({
     width: 800,
@@ -483,17 +481,14 @@ const createWindow = () => {
       preload: path$1.join(__dirname, "preload.js")
     }
   });
+  require$$3$1.Menu.setApplicationMenu(null);
   mainWindow.loadURL("http://localhost:5173");
   mainWindow.webContents.openDevTools();
 };
 require$$3$1.app.on("ready", createWindow);
 require$$3$1.app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    require$$3$1.app.quit();
-  }
+  if (process.platform !== "darwin") require$$3$1.app.quit();
 });
 require$$3$1.app.on("activate", () => {
-  if (require$$3$1.BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+  if (require$$3$1.BrowserWindow.getAllWindows().length === 0) createWindow();
 });

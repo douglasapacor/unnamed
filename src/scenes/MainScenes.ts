@@ -1,22 +1,20 @@
 import { Scene } from "phaser";
-import ThreeManager from "../utils/ThreeManager";
+import Core from "src/utils/Core";
 
 export default class MainScenes extends Scene {
-  private threeManager!: ThreeManager;
+  private core: Core = new Core();
 
   constructor() {
     super("MainScene");
-    this.threeManager = new ThreeManager("main");
   }
 
   preload(): void {}
 
   create() {
-    this.threeManager.init();
-    this.add.text(10, 10, "UI layer", { color: "#ffffff" });
+    this.core.init();
   }
 
   update() {
-    if (this.threeManager) this.threeManager.render();
+    this.core.render();
   }
 }
