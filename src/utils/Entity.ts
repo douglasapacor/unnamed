@@ -5,7 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 export default class Entity extends GameObject {
   private model: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
-  private actions: { [key: string]: THREE.AnimationAction };
+  public actions: { [key: string]: THREE.AnimationAction };
   private currentAction: THREE.AnimationAction | null;
 
   constructor(
@@ -17,16 +17,16 @@ export default class Entity extends GameObject {
     super(name);
 
     this.model = new THREE.Object3D();
-    this.mixer = new THREE.AnimationMixer(this.model);
     this.actions = {};
     this.currentAction = null;
 
     const loader = new GLTFLoader();
-
     loader.load(modelPath, (gltf) => {
       this.model = gltf.scene;
       this.model.scale.set(scale, scale, scale);
       scene.add(this.model);
+
+      this.mixer = new THREE.AnimationMixer(this.model);
 
       gltf.animations.forEach((clip) => {
         const action = this.mixer.clipAction(clip);
@@ -60,7 +60,7 @@ export default class Entity extends GameObject {
   }
 
   override update(delta: number): void {
-    this.mixer.update(delta);
+    if (this.mixer) this.mixer.update(delta);
   }
 
   move(x: number, y: number, z: number): void {

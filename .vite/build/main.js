@@ -478,7 +478,8 @@ const createWindow = () => {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path$1.join(__dirname, "preload.js")
+      preload: path$1.join(__dirname, "preload.js"),
+      nodeIntegration: true
     }
   });
   require$$3$1.Menu.setApplicationMenu(null);

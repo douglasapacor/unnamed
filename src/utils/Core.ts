@@ -8,6 +8,10 @@ export default class Core {
 
   constructor() {}
 
+  set _scene(value: THREE.Scene) {
+    this.scene = value;
+  }
+
   get _scene(): THREE.Scene {
     return this.scene;
   }
@@ -20,7 +24,7 @@ export default class Core {
     return this.light;
   }
 
-  private buildCanvas(): void {
+  public init() {
     this.canvas = document.createElement("canvas");
     this.canvas.id = "3D_layer";
     this.canvas.style.position = "absolute";
@@ -28,10 +32,6 @@ export default class Core {
     this.canvas.style.left = "0";
     this.canvas.style.pointerEvents = "none";
     document.body.appendChild(this.canvas);
-  }
-
-  public init() {
-    this.buildCanvas();
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -41,7 +41,6 @@ export default class Core {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.scene = new THREE.Scene();
-
     this.camera = new THREE.PerspectiveCamera(
       100,
       window.innerWidth / window.innerHeight,
@@ -49,7 +48,10 @@ export default class Core {
       1000
     );
 
+    this.camera.position.x = 0;
+    this.camera.position.y = 5;
     this.camera.position.z = 5;
+    this.camera.rotation.x = 50;
 
     this.light = new THREE.DirectionalLight(0xffffff, 1);
     this.light.position.set(1, 1, 1).normalize();
@@ -57,6 +59,7 @@ export default class Core {
   }
 
   public render() {
+    this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
   }
 }

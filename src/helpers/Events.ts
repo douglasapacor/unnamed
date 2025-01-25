@@ -1,10 +1,12 @@
+type callback = {
+  id: number;
+  eventName: string;
+  caller: any;
+  callback: (data: any) => void;
+};
+
 class Events {
-  private callbacks: {
-    id: number;
-    eventName: string;
-    caller: any;
-    callback: (data: any) => void;
-  }[] = [];
+  private callbacks: callback[] = [];
   private nextId = 0;
 
   emit(eventName: string, value: any) {
@@ -17,12 +19,14 @@ class Events {
 
   on(eventName: string, caller: any, callback: (data: any) => void): number {
     this.nextId += 1;
+
     this.callbacks.push({
       id: this.nextId,
       eventName,
       caller,
       callback,
     });
+
     return this.nextId;
   }
 
