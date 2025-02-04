@@ -1,7 +1,7 @@
-import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import GameObject from "./GameObject";
+import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import GameObject from "./GameObject";
 
 export default class Entity extends GameObject {
   private model: THREE.Object3D;
@@ -39,6 +39,10 @@ export default class Entity extends GameObject {
         this.actions[clip.name] = this.mixer.clipAction(clip);
       });
     });
+  }
+
+  get position(): THREE.Vector3 {
+    return this.model.position;
   }
 
   override create(): void {
@@ -80,9 +84,7 @@ export default class Entity extends GameObject {
     this.currentAction = action;
   }
 
-  public move(x: number, y: number, z: number): void {
-    this.model.position.add(new THREE.Vector3(x, y, z));
-  }
+  public move(position: THREE.Vector3): void {}
 
   public rotate(yaw: number): void {
     this.model.rotation.y += yaw;
