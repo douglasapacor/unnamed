@@ -1,3 +1,4 @@
+import { events } from "../helpers/Events";
 import * as THREE from "three";
 export default class Core {
   private scene: THREE.Scene;
@@ -6,7 +7,17 @@ export default class Core {
   private light: THREE.DirectionalLight;
   private canvas: HTMLCanvasElement;
 
-  constructor() {}
+  constructor() {
+    events.on(
+      "char_position",
+      this,
+      (char: { position: { x: number; y: number; z: number } }) => {
+        this.camera.position.x = char.position.x;
+        this.camera.position.y = char.position.y + 5;
+        this.camera.position.z = char.position.z + 5;
+      }
+    );
+  }
 
   set _scene(value: THREE.Scene) {
     this.scene = value;
