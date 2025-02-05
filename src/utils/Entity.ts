@@ -41,11 +41,11 @@ export default class Entity extends GameObject {
     });
   }
 
-  get position(): THREE.Vector3 {
-    return this.model.position;
+  get position(): CANNON.Vec3 {
+    return this.boxBody.position;
   }
 
-  override create(): void {
+  create(): void {
     const boxShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
     this.boxBody = new CANNON.Body({
       mass: 1,
@@ -55,14 +55,14 @@ export default class Entity extends GameObject {
     this.world.addBody(this.boxBody);
   }
 
-  override update(delta: number): void {
+  update(delta: number): void {
     if (this.mixer) this.mixer.update(delta);
 
     this.model.position.copy(this.boxBody.position as any);
     this.model.quaternion.copy(this.boxBody.quaternion as any);
   }
 
-  public playAnimation(name: string, loop: boolean = true): void {
+  playAnimation(name: string, loop: boolean = true): void {
     if (!this.actions[name]) {
       console.warn(`A animação "${name}" não foi encontrada!`);
       return;
@@ -82,11 +82,5 @@ export default class Entity extends GameObject {
     action.fadeIn(0.5).play();
 
     this.currentAction = action;
-  }
-
-  public move(position: THREE.Vector3): void {}
-
-  public rotate(yaw: number): void {
-    this.model.rotation.y += yaw;
   }
 }
