@@ -4,6 +4,8 @@ export default class KeyboardScene {
   private A_key: Phaser.Input.Keyboard.Key;
   private S_key: Phaser.Input.Keyboard.Key;
   private D_key: Phaser.Input.Keyboard.Key;
+  private SPACE_key: Phaser.Input.Keyboard.Key;
+
   public w_pressed: boolean;
   public a_pressed: boolean;
   public s_pressed: boolean;
@@ -28,6 +30,9 @@ export default class KeyboardScene {
     );
     this.D_key = this.scene.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.D
+    );
+    this.SPACE_key = this.scene.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
     );
 
     this.W_key.on("down", () => {

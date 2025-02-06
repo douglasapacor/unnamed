@@ -19,14 +19,10 @@ export default class Entity extends GameObject {
     name?: string
   ) {
     super(name);
-
     this.model = new THREE.Object3D();
-
     this.actions = {};
     this.currentAction = null;
-
     this.loader = new GLTFLoader();
-
     this.loader.load(path, (gltf) => {
       this.model = gltf.scene;
       this.model.scale.set(scale, scale, scale);

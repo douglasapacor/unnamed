@@ -20,7 +20,7 @@ export default class Player extends Entity {
     name?: string
   ) {
     super(scene, world, path, scale, name);
-    this.attributes = new Attributes(20);
+    this.attributes = new Attributes();
     this.cube = new THREE.Mesh(this.geometry, this.material);
     scene.add(this.cube);
   }
