@@ -9,13 +9,12 @@ export default class Entity extends GameObject {
   private actions: Record<string, THREE.AnimationAction>;
   private currentAction: THREE.AnimationAction | null;
   private loader: GLTFLoader;
-  private boxBody!: CANNON.Body;
+  public body!: CANNON.Body;
 
   constructor(
-    scene: THREE.Scene,
     private world: CANNON.World,
+    scene: THREE.Scene,
     path: string,
-    scale: number,
     name?: string
   ) {
     super(name);
@@ -25,7 +24,7 @@ export default class Entity extends GameObject {
     this.loader = new GLTFLoader();
     this.loader.load(path, (gltf) => {
       this.model = gltf.scene;
-      this.model.scale.set(scale, scale, scale);
+      this.model.scale.set(1, 1, 1);
 
       scene.add(this.model);
 
@@ -37,33 +36,42 @@ export default class Entity extends GameObject {
     });
   }
 
-  get position(): CANNON.Vec3 {
-    return this.boxBody.position;
-  }
-
-  get body(): CANNON.Body {
-    return this.boxBody;
-  }
-
   create(): void {
-    const boxShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
-    this.boxBody = new CANNON.Body({
+    this.body = new CANNON.Body({
       mass: 1,
-      shape: boxShape,
+      shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
+      velocity: new CANNON.Vec3(0, 0, 0),
+      position: new CANNON.Vec3(0, 1, 0),
     });
-    this.boxBody.fixedRotation = true;
-    this.boxBody.updateMassProperties();
-    this.boxBody.angularDamping = 0.9;
-    this.world.addBody(this.boxBody);
+
+    this.body.fixedRotation = true;
+    this.body.angularDamping = 0.9;
+    this.body.updateMassProperties();
+
+    this.world.addBody(this.body);
   }
 
   update(delta: number): void {
     if (this.mixer) this.mixer.update(delta);
 
-    this.boxBody.velocity.set(0, this.boxBody.velocity.y, 0);
+    this.model.position.copy(
+      new THREE.Vector3(
+        this.body.position.x,
+        this.body.position.y,
+        this.body.position.z
+      )
+    );
 
-    this.model.position.copy(this.boxBody.position as any);
-    this.model.quaternion.copy(this.boxBody.quaternion as any);
+    this.model.quaternion.copy(
+      new THREE.Quaternion(
+        this.body.quaternion.x,
+        this.body.quaternion.y,
+        this.body.quaternion.z,
+        this.body.quaternion.w
+      )
+    );
+
+    this.body.velocity.set(0, this.body.velocity.y, 0);
   }
 
   playAnimation(name: string, loop: boolean = true): void {

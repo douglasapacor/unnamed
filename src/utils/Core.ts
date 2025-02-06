@@ -1,38 +1,32 @@
-import { events } from "../helpers/Events";
 import * as THREE from "three";
+import { events } from "../helpers/Events";
+import Physic from "./Physic";
+const altura = 3;
+const distancia = 6;
+const lerpFactor = 0.1;
 export default class Core {
-  private scene: THREE.Scene;
+  public scene: THREE.Scene;
+  public light: THREE.DirectionalLight;
+  public camera: THREE.PerspectiveCamera;
+  public physics: Physic;
   private renderer: THREE.WebGLRenderer;
-  private camera: THREE.PerspectiveCamera;
-  private light: THREE.DirectionalLight;
   private canvas: HTMLCanvasElement;
 
   constructor() {
     events.on(
-      "char_position",
+      "player_position",
       this,
       (char: { position: { x: number; y: number; z: number } }) => {
-        this.camera.position.x = char.position.x;
-        this.camera.position.y = char.position.y + 5;
-        this.camera.position.z = char.position.z + 5;
+        this.camera.position.lerp(
+          new THREE.Vector3(
+            char.position.x,
+            char.position.y + altura,
+            char.position.z + distancia
+          ),
+          lerpFactor
+        );
       }
     );
-  }
-
-  set _scene(value: THREE.Scene) {
-    this.scene = value;
-  }
-
-  get _scene(): THREE.Scene {
-    return this.scene;
-  }
-
-  get _camera(): THREE.PerspectiveCamera {
-    return this.camera;
-  }
-
-  get _light(): THREE.DirectionalLight {
-    return this.light;
   }
 
   public init() {
@@ -44,6 +38,8 @@ export default class Core {
     this.canvas.style.pointerEvents = "none";
     document.body.appendChild(this.canvas);
 
+    this.physics = new Physic();
+
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       alpha: true,
@@ -52,6 +48,7 @@ export default class Core {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.scene = new THREE.Scene();
+
     this.camera = new THREE.PerspectiveCamera(
       100,
       window.innerWidth / window.innerHeight,
@@ -62,14 +59,16 @@ export default class Core {
     this.camera.position.x = 0;
     this.camera.position.y = 5;
     this.camera.position.z = 5;
-    this.camera.rotation.x = 50;
 
     this.light = new THREE.DirectionalLight(0xffffff, 1);
+
     this.light.position.set(1, 1, 1).normalize();
+
     this.scene.add(this.light);
   }
 
   public render() {
+    this.physics.update();
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
   }

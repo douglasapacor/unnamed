@@ -1,8 +1,12 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 
+interface ExtendedBody extends CANNON.Body {
+  data?: { type: string };
+}
+
 export default class Terrain {
-  private groundBody!: CANNON.Body;
+  private groundBody!: ExtendedBody;
   private groundShape!: CANNON.Plane;
   private groundMesh!: THREE.Mesh;
   private groundGeometry!: THREE.PlaneGeometry;
@@ -15,6 +19,8 @@ export default class Terrain {
       mass: 0,
       shape: this.groundShape,
     });
+
+    this.groundBody.data = { type: "ground" };
 
     this.groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 

@@ -1,17 +1,15 @@
 import { Scene } from "phaser";
 import { MODELS } from "../config/directories";
 import Core from "../utils/Core";
-import KeyboardScene from "../utils/KeyboardScene";
-import Physic from "../utils/Physic";
+import InputController from "../utils/InputController";
 import Player from "../utils/Player";
 import Terrain from "../utils/Terrain";
 
 export default class MainScenes extends Scene {
   private core: Core;
-  private physic: Physic;
   private terrain: Terrain;
   private player: Player;
-  private keyboard: KeyboardScene;
+  private inputController: InputController;
 
   constructor() {
     super("MainScene");
@@ -20,38 +18,45 @@ export default class MainScenes extends Scene {
 
   preload(): void {
     this.core.init();
-    this.physic = new Physic();
-    this.terrain = new Terrain(this.core._scene, this.physic._world);
+    this.terrain = new Terrain(this.core.scene, this.core.physics.world);
     this.player = new Player(
-      this.core._scene,
-      this.physic._world,
-      MODELS.dummy,
-      1
+      this.core.scene,
+      this.core.physics.world,
+      MODELS.dummy
     );
-    this.keyboard = new KeyboardScene(this);
+
+    this.inputController = new InputController(this);
   }
 
   create(): void {
     this.player.create();
-    this.keyboard.create();
+    this.inputController.create();
+    this.inputController.left = this.player_left;
+    this.inputController.right = this.player_right;
+    this.inputController.up = this.player_up;
+    this.inputController.down = this.player_down;
   }
 
   update(t: number, delta: number) {
     this.core.render();
-    this.physic.update();
     this.terrain.update();
     this.player.update(delta);
-
-    if (this.keyboard.w_pressed)
-      this.player.body.velocity.z -= this.player.attributes.speed;
-
-    if (this.keyboard.a_pressed)
-      this.player.body.velocity.x -= this.player.attributes.speed;
-
-    if (this.keyboard.s_pressed)
-      this.player.body.velocity.z += this.player.attributes.speed;
-
-    if (this.keyboard.d_pressed)
-      this.player.body.velocity.x += this.player.attributes.speed;
+    this.inputController.update();
   }
+
+  private player_left = () => {
+    this.player.body.velocity.z += this.player.attributes.speed;
+  };
+
+  private player_right = () => {
+    this.player.body.velocity.x += this.player.attributes.speed;
+  };
+
+  private player_up = () => {
+    this.player.body.velocity.z -= this.player.attributes.speed;
+  };
+
+  private player_down = () => {
+    this.player.body.velocity.x -= this.player.attributes.speed;
+  };
 }

@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu } from "electron";
-import path from "path";
 import started from "electron-squirrel-startup";
+import path from "path";
 
 if (started) app.quit();
 
