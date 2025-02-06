@@ -45,18 +45,26 @@ export default class Entity extends GameObject {
     return this.boxBody.position;
   }
 
+  get body(): CANNON.Body {
+    return this.boxBody;
+  }
+
   create(): void {
     const boxShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
     this.boxBody = new CANNON.Body({
       mass: 1,
       shape: boxShape,
     });
-    this.boxBody.position.set(0, 10, 0);
+    this.boxBody.fixedRotation = true;
+    this.boxBody.updateMassProperties();
+    this.boxBody.angularDamping = 0.9;
     this.world.addBody(this.boxBody);
   }
 
   update(delta: number): void {
     if (this.mixer) this.mixer.update(delta);
+
+    this.boxBody.velocity.set(0, this.boxBody.velocity.y, 0);
 
     this.model.position.copy(this.boxBody.position as any);
     this.model.quaternion.copy(this.boxBody.quaternion as any);

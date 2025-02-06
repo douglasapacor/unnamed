@@ -1,19 +1,17 @@
 import { Scene } from "phaser";
 import { MODELS } from "../config/directories";
 import Core from "../utils/Core";
+import KeyboardScene from "../utils/KeyboardScene";
 import Physic from "../utils/Physic";
-import Terrain from "../utils/Terrain";
 import Player from "../utils/Player";
+import Terrain from "../utils/Terrain";
 
 export default class MainScenes extends Scene {
   private core: Core;
   private physic: Physic;
   private terrain: Terrain;
   private player: Player;
-  private W_key: Phaser.Input.Keyboard.Key;
-  private A_key: Phaser.Input.Keyboard.Key;
-  private S_key: Phaser.Input.Keyboard.Key;
-  private D_key: Phaser.Input.Keyboard.Key;
+  private keyboard: KeyboardScene;
 
   constructor() {
     super("MainScene");
@@ -30,23 +28,12 @@ export default class MainScenes extends Scene {
       MODELS.dummy,
       1
     );
+    this.keyboard = new KeyboardScene(this);
   }
 
   create(): void {
     this.player.create();
-
-    this.W_key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.A_key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.S_key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.D_key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-
-    this.W_key.on("down", () => {});
-
-    this.A_key.on("down", () => {});
-
-    this.S_key.on("down", () => {});
-
-    this.D_key.on("down", () => {});
+    this.keyboard.create();
   }
 
   update(t: number, delta: number) {
@@ -54,5 +41,17 @@ export default class MainScenes extends Scene {
     this.physic.update();
     this.terrain.update();
     this.player.update(delta);
+
+    if (this.keyboard.w_pressed)
+      this.player.body.velocity.z -= this.player.attributes.speed;
+
+    if (this.keyboard.a_pressed)
+      this.player.body.velocity.x -= this.player.attributes.speed;
+
+    if (this.keyboard.s_pressed)
+      this.player.body.velocity.z += this.player.attributes.speed;
+
+    if (this.keyboard.d_pressed)
+      this.player.body.velocity.x += this.player.attributes.speed;
   }
 }
