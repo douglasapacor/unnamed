@@ -29,7 +29,7 @@ export default class Core {
     );
   }
 
-  public init() {
+  public preload() {
     this.canvas = document.createElement("canvas");
     this.canvas.id = "3D_layer";
     this.canvas.style.position = "absolute";
@@ -56,19 +56,14 @@ export default class Core {
       1000
     );
 
-    this.camera.position.x = 0;
-    this.camera.position.y = 5;
-    this.camera.position.z = 5;
-
     this.light = new THREE.DirectionalLight(0xffffff, 1);
-
     this.light.position.set(1, 1, 1).normalize();
 
     this.scene.add(this.light);
   }
 
-  public render() {
-    this.physics.update();
+  public update(delta: number) {
+    this.physics.update(delta);
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
   }

@@ -25,11 +25,8 @@ export default class Entity extends GameObject {
     this.loader.load(path, (gltf) => {
       this.model = gltf.scene;
       this.model.scale.set(1, 1, 1);
-
       scene.add(this.model);
-
       this.mixer = new THREE.AnimationMixer(this.model);
-
       gltf.animations.forEach((clip) => {
         this.actions[clip.name] = this.mixer.clipAction(clip);
       });

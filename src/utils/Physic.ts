@@ -8,7 +8,7 @@ export default class Physic {
     this.world.gravity.set(0, -9.82, 0);
   }
 
-  update() {
-    this.world.step(1 / 60);
+  update(delta: number) {
+    this.world.step(1 / 60, delta, 5);
   }
 }

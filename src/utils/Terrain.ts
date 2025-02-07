@@ -37,8 +37,22 @@ export default class Terrain {
     this.threeScene.add(this.groundMesh);
   }
 
-  update() {
-    this.groundMesh.position.copy(this.groundBody.position as any);
-    this.groundMesh.quaternion.copy(this.groundBody.quaternion as any);
+  update(delta: number) {
+    this.groundMesh.position.copy(
+      new THREE.Vector3(
+        this.groundBody.position.x,
+        this.groundBody.position.y,
+        this.groundBody.position.z
+      )
+    );
+
+    this.groundMesh.quaternion.copy(
+      new THREE.Quaternion(
+        this.groundBody.quaternion.x,
+        this.groundBody.quaternion.y,
+        this.groundBody.quaternion.z,
+        this.groundBody.quaternion.w
+      )
+    );
   }
 }
