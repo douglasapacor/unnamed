@@ -1,12 +1,8 @@
 export default class GameObject {
-  private name: string = "";
+  public readonly name: string = "";
 
   constructor(name?: string) {
     this.name = name;
-  }
-
-  get _name(): string {
-    return this.name;
   }
 
   preload(): void {}

@@ -12,7 +12,6 @@ export default class MainScenes extends Scene {
   constructor() {
     super("MainScene");
     this.core = new Core();
-    const a = this.input;
   }
 
   preload(): void {
@@ -36,20 +35,4 @@ export default class MainScenes extends Scene {
     this.terrain.update(delta);
     this.player.update(delta);
   }
-
-  private player_left = () => {
-    this.player.body.velocity.z += this.player.attributes.speed;
-  };
-
-  private player_right = () => {
-    this.player.body.velocity.x += this.player.attributes.speed;
-  };
-
-  private player_up = () => {
-    this.player.body.velocity.z -= this.player.attributes.speed;
-  };
-
-  private player_down = () => {
-    this.player.body.velocity.x -= this.player.attributes.speed;
-  };
 }

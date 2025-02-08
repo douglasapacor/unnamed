@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu } from "electron";
 import started from "electron-squirrel-startup";
 import path from "path";
+process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
 
 if (started) app.quit();
 
@@ -23,7 +24,7 @@ const createWindow = () => {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
 
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 };
 
 app.on("ready", createWindow);

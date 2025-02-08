@@ -472,6 +472,7 @@ var check = function() {
 };
 var electronSquirrelStartup = check();
 const started = /* @__PURE__ */ getDefaultExportFromCjs(electronSquirrelStartup);
+process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
 if (started) require$$3$1.app.quit();
 const createWindow = () => {
   const mainWindow = new require$$3$1.BrowserWindow({
@@ -484,6 +485,7 @@ const createWindow = () => {
   });
   require$$3$1.Menu.setApplicationMenu(null);
   mainWindow.loadURL("http://localhost:5173");
+  mainWindow.webContents.openDevTools();
 };
 require$$3$1.app.on("ready", createWindow);
 require$$3$1.app.on("window-all-closed", () => {

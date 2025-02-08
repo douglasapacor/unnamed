@@ -7,13 +7,12 @@ import Entity from "./Entity";
 export default class Player extends Entity {
   private cube?: THREE.Mesh;
   private showBoxCollider?: boolean;
-  public attributes: Attributes;
-  private status: {
-    left: boolean;
-    right: boolean;
-    up: boolean;
-    down: boolean;
-  };
+  public attributes: Attributes = new Attributes();
+
+  private moving_left: boolean = false;
+  private moving_right: boolean = false;
+  private moving_up: boolean = false;
+  private moving_down: boolean = false;
 
   constructor(params: {
     scene: THREE.Scene;
@@ -24,11 +23,14 @@ export default class Player extends Entity {
     showBoxCollider?: boolean;
   }) {
     super(params.world, params.scene, params.path, params.name);
+    this.boxcolliderSettings(params.showBoxCollider, params.scene);
+    this.setupControls(params.input);
+  }
 
-    this.showBoxCollider = params.showBoxCollider;
-    this.attributes = new Attributes();
+  private boxcolliderSettings(show: boolean, scene: THREE.Scene) {
+    this.showBoxCollider = show;
 
-    if (params.showBoxCollider) {
+    if (this.showBoxCollider) {
       this.cube = new THREE.Mesh(
         new THREE.BoxGeometry(0.5, 2, 0.3),
         new THREE.MeshBasicMaterial({
@@ -37,37 +39,61 @@ export default class Player extends Entity {
         })
       );
 
-      params.scene.add(this.cube);
+      scene.add(this.cube);
     }
+  }
 
-    params.input.keyboard.on("keydown-" + "W", () => {
-      this.status["left"] = true;
+  private setupControls(input: Phaser.Input.InputPlugin): void {
+    input.keyboard.on("keydown-" + "W", () => {
+      this.moving_up = true;
+    });
+    input.keyboard.on("keyup-" + "W", () => {
+      this.moving_up = false;
     });
 
-    params.input.keyboard.on("keydown-" + "A", () => {
-      this.status["right"] = true;
+    input.keyboard.on("keydown-" + "S", () => {
+      this.moving_down = true;
+    });
+    input.keyboard.on("keyup-" + "S", () => {
+      this.moving_down = false;
     });
 
-    params.input.keyboard.on("keydown-" + "S", () => {
-      this.status["down"] = true;
+    input.keyboard.on("keydown-" + "A", () => {
+      this.moving_left = true;
+    });
+    input.keyboard.on("keyup-" + "A", () => {
+      this.moving_left = false;
     });
 
-    params.input.keyboard.on("keydown-" + "D", () => {
-      this.status["up"] = true;
+    input.keyboard.on("keydown-" + "D", () => {
+      this.moving_right = true;
+    });
+    input.keyboard.on("keyup-" + "D", () => {
+      this.moving_right = false;
     });
   }
 
-  update(delta: number): void {
-    super.update(delta);
+  private moveSystem(): void {
+    if (this.moving_up) this.body.velocity.z -= this.attributes.speed;
+    if (this.moving_down) this.body.velocity.z += this.attributes.speed;
+    if (this.moving_left) this.body.velocity.x -= this.attributes.speed;
+    if (this.moving_right) this.body.velocity.x += this.attributes.speed;
+  }
 
-    events.emit("player_position", {
-      position: {
-        x: this.body.position.x,
-        y: this.body.position.y + 1,
-        z: this.body.position.z,
-      },
-    });
+  private animationSystem(): void {
+    if (
+      this.moving_up ||
+      this.moving_down ||
+      this.moving_left ||
+      this.moving_right
+    ) {
+      this.playAnimation("running_001");
+    } else {
+      this.playAnimation("idle_001");
+    }
+  }
 
+  private boxcolliderSystem(): void {
     if (this.showBoxCollider) {
       this.cube.position.copy(
         new THREE.Vector3(
@@ -86,5 +112,35 @@ export default class Player extends Entity {
         )
       );
     }
+  }
+
+  private positionSystem(): void {
+    events.emit("player_position", {
+      position: {
+        x: this.body.position.x,
+        y: this.body.position.y + 1,
+        z: this.body.position.z,
+      },
+    });
+  }
+
+  private rotationSystem(): void {
+    if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
+      this.model.rotation.y = THREE.MathUtils.lerp(
+        this.model.rotation.y,
+        Math.atan2(this.body.velocity.x, this.body.velocity.z),
+        1
+      );
+    }
+  }
+
+  public update(delta: number): void {
+    super.update(delta);
+
+    this.positionSystem();
+    this.boxcolliderSystem();
+    this.moveSystem();
+    this.rotationSystem();
+    this.animationSystem();
   }
 }
