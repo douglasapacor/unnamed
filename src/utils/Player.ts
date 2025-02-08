@@ -87,9 +87,9 @@ export default class Player extends Entity {
       this.moving_left ||
       this.moving_right
     ) {
-      this.playAnimation("running_001");
+      this.playAnimation("running_002");
     } else {
-      this.playAnimation("idle_001");
+      this.playAnimation("idle_002");
     }
   }
 

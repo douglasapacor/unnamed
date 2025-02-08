@@ -60,7 +60,9 @@ export default class Entity extends GameObject {
     if (this.currentAction) this.currentAction.fadeOut(0.5);
 
     this.currentAction = this.actions[name];
+
     this.currentAction.reset().fadeIn(0.5).play();
+    this.currentAction.timeScale = 0.7;
   }
 
   create(): void {
