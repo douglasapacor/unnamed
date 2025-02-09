@@ -3,7 +3,7 @@ export class Attributes {
   public jumpForce: number;
 
   constructor() {
-    this.speed = 20;
+    this.speed = 14;
     this.jumpForce = 10;
   }
 }

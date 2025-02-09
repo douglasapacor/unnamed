@@ -8,7 +8,6 @@ export default class Player extends Entity {
   private cube?: THREE.Mesh;
   private showBoxCollider?: boolean;
   public attributes: Attributes = new Attributes();
-
   private moving_left: boolean = false;
   private moving_right: boolean = false;
   private moving_up: boolean = false;

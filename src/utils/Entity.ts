@@ -68,7 +68,7 @@ export default class Entity extends GameObject {
   create(): void {
     this.body = new CANNON.Body({
       mass: 1,
-      shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
+      shape: new CANNON.Box(new CANNON.Vec3(0.4, 0.8, 0.15)),
       velocity: new CANNON.Vec3(0, 0, 0),
       position: new CANNON.Vec3(0, 1, 0),
     });
