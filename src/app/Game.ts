@@ -4,7 +4,7 @@ export default class Game {
   private phaserGame!: Phaser.Game;
 
   constructor(parentElementId: string) {
-    const config: Phaser.Types.Core.GameConfig = {
+    this.phaserGame = new Phaser.Game({
       type: Phaser.AUTO,
       width: window.innerWidth,
       height: window.innerHeight,
@@ -15,8 +15,6 @@ export default class Game {
         default: "arcade",
         arcade: { debug: false },
       },
-    };
-
-    this.phaserGame = new Phaser.Game(config);
+    });
   }
 }
