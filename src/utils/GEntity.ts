@@ -6,8 +6,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 export default class GEntity extends GObject {
   private model: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
-  private actions: Record<string, THREE.AnimationAction> = {};
-  private currentAction: THREE.AnimationAction | null = null;
+  private animations: Record<string, THREE.AnimationAction> = {};
+  private currentAnimation: THREE.AnimationAction | null = null;
   private loader: GLTFLoader;
   private body: CANNON.Body;
   private cube?: THREE.Mesh;
@@ -15,6 +15,14 @@ export default class GEntity extends GObject {
   private animLoaded: number = 0;
   private GLTFloaded: boolean = false;
   private animEnd: boolean = false;
+  private movementSpeed: number = 0;
+  private movement: {
+    left: boolean;
+    right: boolean;
+    up: boolean;
+    down: boolean;
+    idle: boolean;
+  };
 
   constructor(
     private params: {
@@ -22,21 +30,25 @@ export default class GEntity extends GObject {
       path: string;
       scene: THREE.Scene;
       world: CANNON.World;
+      collider?: boolean;
     }
   ) {
     super({ name: params.name });
 
     this.model = new THREE.Object3D();
     this.loader = new GLTFLoader();
-    this.cube = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 2, 0.3),
-      new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        wireframe: true,
-      })
-    );
 
-    this.params.scene.add(this.cube);
+    if (this.params.collider) {
+      this.cube = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 2, 0.3),
+        new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          wireframe: true,
+        })
+      );
+
+      this.params.scene.add(this.cube);
+    }
   }
 
   override preload(): void {
@@ -53,7 +65,7 @@ export default class GEntity extends GObject {
         this.mixer = new THREE.AnimationMixer(this.model);
 
         gltf.animations.forEach((clip) => {
-          this.actions[clip.name] = this.mixer.clipAction(clip);
+          this.animations[clip.name] = this.mixer.clipAction(clip);
 
           this.animLoaded += 1;
 
@@ -87,9 +99,79 @@ export default class GEntity extends GObject {
 
     this.alignComponents();
     this.rotation();
+    this.movementProcess();
+  }
+
+  walkLeftOn(speed: number): void {
+    this.movementSpeed = speed;
+    this.movement.left = true;
+  }
+  walkLeftOff(): void {
+    this.movement.left = false;
+  }
+
+  walkRightOn(speed: number): void {
+    this.movementSpeed = speed;
+    this.movement.right = true;
+  }
+  walkRightOff(): void {
+    this.movement.right = false;
+  }
+
+  walkUpOn(speed: number): void {
+    this.movementSpeed = speed;
+    this.movement.up = true;
+  }
+  walkUpOff(): void {
+    this.movement.up = false;
+  }
+
+  walkDownOn(speed: number): void {
+    this.movementSpeed = speed;
+    this.movement.down = true;
+  }
+  walkDownOff(): void {
+    this.movement.down = false;
+  }
+
+  private movementProcess(): void {
+    if (this.movement.up) this.body.velocity.z -= this.movementSpeed;
+    if (this.movement.down) this.body.velocity.z += this.movementSpeed;
+    if (this.movement.left) this.body.velocity.x -= this.movementSpeed;
+    if (this.movement.right) this.body.velocity.x += this.movementSpeed;
+
+    if (
+      !this.movement.up &&
+      !this.movement.down &&
+      !this.movement.left &&
+      !this.movement.right
+    ) {
+      this.movement.idle = true;
+    } else {
+      this.movement.idle = false;
+    }
   }
 
   private alignComponents(): void {
+    if (this.params.collider) {
+      this.cube.position.copy(
+        new THREE.Vector3(
+          this.body.position.x,
+          this.body.position.y + 1,
+          this.body.position.z
+        )
+      );
+
+      this.cube.quaternion.copy(
+        new THREE.Quaternion(
+          this.body.quaternion.z,
+          this.body.quaternion.y,
+          this.body.quaternion.z,
+          this.body.quaternion.w
+        )
+      );
+    }
+
     this.model.position.copy(
       new THREE.Vector3(
         this.body.position.x,
@@ -120,22 +202,22 @@ export default class GEntity extends GObject {
     }
   }
 
-  public playAnimation(name: string): void {
+  public playAnimation(name: string, timeScale?: number): void {
     if (!this.GLTFloaded || !this.animEnd) return;
 
-    if (!this.actions[name]) {
+    if (!this.animations[name]) {
       console.warn(`A animação "${name}" não foi encontrada!`);
       return;
     }
 
-    if (this.currentAction === this.actions[name]) return;
+    if (this.currentAnimation === this.animations[name]) return;
 
-    if (this.currentAction) this.currentAction.fadeOut(0.5);
+    if (this.currentAnimation) this.currentAnimation.fadeOut(0.5);
 
-    this.currentAction = this.actions[name];
+    this.currentAnimation = this.animations[name];
 
-    this.currentAction.reset().fadeIn(0.5).play();
+    this.currentAnimation.reset().fadeIn(0.5).play();
 
-    this.currentAction.timeScale = 0.7;
+    this.currentAnimation.timeScale = timeScale ? timeScale : 0.7;
   }
 }

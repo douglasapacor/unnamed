@@ -3,6 +3,4 @@ export enum MODELS {
   dummy = "/src/assets/models/dummy.glb",
 }
 
-export enum IMAGES {
-  tst = "/src/assets/models/tst.glb",
-}
+export enum IMAGES {}
