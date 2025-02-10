@@ -4,42 +4,57 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import GameObject from "./GameObject";
 
 export default class Entity extends GameObject {
-  public model: THREE.Object3D;
+  private model: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
-  public actions: Record<string, THREE.AnimationAction>;
-  private currentAction: THREE.AnimationAction | null;
+  private animations: Record<string, THREE.AnimationAction> = {};
+  private currentAnimation: THREE.AnimationAction | null = null;
   private loader: GLTFLoader;
-  public body!: CANNON.Body;
   private animTotal: number = 0;
   private animLoaded: number = 0;
   private GLTFloaded: boolean = false;
   private animEnd: boolean = false;
 
   constructor(
-    private world: CANNON.World,
-    scene: THREE.Scene,
-    path: string,
-    name?: string
+    protected params: {
+      name?: string;
+      path: string;
+      scene: THREE.Scene;
+      world: CANNON.World;
+      collider?: boolean;
+    }
   ) {
-    super(name);
+    super({
+      name: params.name,
+      scene: params.scene,
+      world: params.world,
+      collider: params.collider,
+    });
+
     this.model = new THREE.Object3D();
-    this.actions = {};
-    this.currentAction = null;
     this.loader = new GLTFLoader();
+  }
+
+  override preload(): void {
     this.loader.load(
-      path,
+      this.params.path,
       (gltf) => {
         this.animTotal = gltf.animations.length;
 
         this.model = gltf.scene;
         this.model.scale.set(1, 1, 1);
 
-        scene.add(this.model);
+        this.params.scene.add(this.model);
+
+        const box = new THREE.Box3().setFromObject(this.model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+
+        console.log("Tamanho do modelo:", size);
 
         this.mixer = new THREE.AnimationMixer(this.model);
 
         gltf.animations.forEach((clip) => {
-          this.actions[clip.name] = this.mixer.clipAction(clip);
+          this.animations[clip.name] = this.mixer.clipAction(clip);
 
           this.animLoaded += 1;
 
@@ -54,52 +69,56 @@ export default class Entity extends GameObject {
     );
   }
 
-  playAnimation(name: string): void {
-    if (!this.GLTFloaded || !this.animEnd) return;
-    if (this.currentAction === this.actions[name]) return;
-    if (this.currentAction) this.currentAction.fadeOut(0.5);
+  override update(delta: number): void {
+    if (this.mixer) {
+      this.mixer.update(delta * delta * 0.0001);
+    }
 
-    this.currentAction = this.actions[name];
-
-    this.currentAction.reset().fadeIn(0.5).play();
-    this.currentAction.timeScale = 0.7;
+    this.align();
+    this.rotation();
+    this.move();
   }
 
-  create(): void {
-    this.body = new CANNON.Body({
-      mass: 1,
-      shape: new CANNON.Box(new CANNON.Vec3(0.4, 0.8, 0.15)),
-      velocity: new CANNON.Vec3(0, 0, 0),
-      position: new CANNON.Vec3(0, 1, 0),
-    });
-
-    this.body.fixedRotation = true;
-    this.body.angularDamping = 0.9;
-    this.body.updateMassProperties();
-
-    this.world.addBody(this.body);
-  }
-
-  update(delta: number): void {
-    if (this.mixer) this.mixer.update(delta * delta * 0.0001);
+  public align(): void {
+    super.align();
 
     this.model.position.copy(
       new THREE.Vector3(
         this.body.position.x,
-        this.body.position.y,
+        this.body.position.y - 0.9,
         this.body.position.z
       )
     );
 
-    this.model.quaternion.copy(
-      new THREE.Quaternion(
-        this.body.quaternion.x,
-        this.body.quaternion.y,
-        this.body.quaternion.z,
-        this.body.quaternion.w
-      )
-    );
+    this.model.quaternion.copy(this.body.quaternion);
 
     this.body.velocity.set(0, this.body.velocity.y, 0);
+  }
+
+  private rotation(): void {
+    if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
+      this.model.rotation.y = THREE.MathUtils.lerp(
+        this.model.rotation.y,
+        Math.atan2(this.body.velocity.x, this.body.velocity.z),
+        1
+      );
+    }
+  }
+
+  public playAnimation(name: string, timeScale?: number): void {
+    if (!this.GLTFloaded || !this.animEnd) return;
+
+    if (!this.animations[name]) {
+      console.warn(`A animação "${name}" não foi encontrada!`);
+      return;
+    }
+
+    if (this.currentAnimation === this.animations[name]) return;
+
+    if (this.currentAnimation) this.currentAnimation.fadeOut(0.5);
+
+    this.currentAnimation = this.animations[name];
+    this.currentAnimation.reset().fadeIn(0.5).play();
+    this.currentAnimation.timeScale = timeScale ? timeScale : 0.7;
   }
 }

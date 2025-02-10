@@ -1,10 +1,11 @@
 import * as THREE from "three";
-import { events } from "../helpers/Events";
+import { cameraEvents } from "../helpers/events";
+import BaseObjects from "./BaseObject";
 import Physic from "./Physic";
 const altura = 3;
 const distancia = 6;
 const lerpFactor = 0.1;
-export default class Core {
+export default class Core extends BaseObjects {
   public scene: THREE.Scene;
   public light: THREE.DirectionalLight;
   public camera: THREE.PerspectiveCamera;
@@ -13,29 +14,30 @@ export default class Core {
   private canvas: HTMLCanvasElement;
 
   constructor() {
-    events.on(
+    super({ name: "core" });
+
+    cameraEvents.on(
       "player_position",
       this,
-      (char: { position: { x: number; y: number; z: number } }) => {
+      (position: { x: number; y: number; z: number }) => {
         this.camera.position.lerp(
           new THREE.Vector3(
-            char.position.x,
-            char.position.y + altura,
-            char.position.z + distancia
+            position.x,
+            position.y + altura,
+            position.z + distancia
           ),
           lerpFactor
         );
       }
     );
-  }
 
-  public preload() {
     this.canvas = document.createElement("canvas");
     this.canvas.id = "3D_layer";
     this.canvas.style.position = "absolute";
     this.canvas.style.top = "0";
     this.canvas.style.left = "0";
     this.canvas.style.pointerEvents = "none";
+
     document.body.appendChild(this.canvas);
 
     this.physics = new Physic();
@@ -62,7 +64,7 @@ export default class Core {
     this.scene.add(this.light);
   }
 
-  public update(delta: number) {
+  override update(delta: number): void {
     this.physics.update(delta);
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
