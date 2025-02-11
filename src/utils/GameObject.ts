@@ -38,7 +38,7 @@ export default class GameObject extends BaseObjects {
         )
       ),
       velocity: new CANNON.Vec3(0, 0, 0),
-      position: new CANNON.Vec3(0, 0, 0),
+      position: new CANNON.Vec3(0, 1, 0),
     });
 
     this.body.fixedRotation = true;

@@ -45,11 +45,11 @@ export default class Entity extends GameObject {
 
         this.params.scene.add(this.model);
 
-        const box = new THREE.Box3().setFromObject(this.model);
-        const size = new THREE.Vector3();
-        box.getSize(size);
+        // const box = new THREE.Box3().setFromObject(this.model);
+        // const size = new THREE.Vector3();
+        // box.getSize(size);
 
-        console.log("Tamanho do modelo:", size);
+        // console.log("Tamanho do modelo:", size);
 
         this.mixer = new THREE.AnimationMixer(this.model);
 
