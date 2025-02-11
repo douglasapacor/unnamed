@@ -1,12 +1,11 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
-import BaseObjects from "./BaseObject";
 
 interface ExtendedBody extends CANNON.Body {
   data?: { type: string };
 }
 
-export default class Terrain extends BaseObjects {
+export default class Terrain {
   private groundBody!: ExtendedBody;
   private groundShape!: CANNON.Plane;
   private groundMesh!: THREE.Mesh;
@@ -19,9 +18,7 @@ export default class Terrain extends BaseObjects {
       world: CANNON.World;
       name?: string;
     }
-  ) {
-    super({ name: params.name });
-  }
+  ) {}
 
   preload(): void {
     this.groundShape = new CANNON.Plane();

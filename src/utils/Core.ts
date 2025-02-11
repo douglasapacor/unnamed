@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import { cameraEvents } from "../helpers/events";
-import BaseObjects from "./BaseObject";
 import Physic from "./Physic";
 const altura = 3;
 const distancia = 6;
 const lerpFactor = 0.1;
-export default class Core extends BaseObjects {
+export default class Core {
   public scene: THREE.Scene;
   public light: THREE.DirectionalLight;
   public camera: THREE.PerspectiveCamera;
@@ -14,8 +13,6 @@ export default class Core extends BaseObjects {
   private canvas: HTMLCanvasElement;
 
   constructor() {
-    super({ name: "core" });
-
     cameraEvents.on(
       "player_position",
       this,
@@ -64,7 +61,7 @@ export default class Core extends BaseObjects {
     this.scene.add(this.light);
   }
 
-  override update(delta: number): void {
+  update(delta: number): void {
     this.physics.update(delta);
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);

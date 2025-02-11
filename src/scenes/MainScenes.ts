@@ -24,7 +24,7 @@ export default class MainScenes extends Scene {
       input: this.input,
       scene: this.core.scene,
       world: this.core.physics.world,
-      collider: true,
+      debug: true,
     });
 
     this.terrain.preload();
