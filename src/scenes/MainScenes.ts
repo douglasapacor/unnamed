@@ -24,15 +24,9 @@ export default class MainScenes extends Scene {
       input: this.input,
       scene: this.core.scene,
       world: this.core.physics.world,
-      debug: true,
     });
 
     this.terrain.preload();
-    this.player.preload();
-  }
-
-  create(): void {
-    this.player.create();
   }
 
   update(t: number, delta: number) {

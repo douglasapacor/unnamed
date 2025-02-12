@@ -9,20 +9,20 @@ export default class Player extends Entity {
     world: CANNON.World;
     input: Phaser.Input.InputPlugin;
     path: string;
-    name?: string;
-    debug?: boolean;
   }) {
     super({
       path: params.path,
       scene: params.scene,
       world: params.world,
-      debug: params.debug,
     });
   }
 
   public update(delta: number): void {
     super.update(delta);
 
-    cameraEvents.emit("player_position", this.body.position);
+    if (this.loaded) {
+      cameraEvents.emit("player_position", this.body.position);
+      this.playAnimation("idle_002");
+    }
   }
 }

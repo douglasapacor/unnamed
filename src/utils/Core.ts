@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { cameraEvents } from "../helpers/events";
+import CannonDebugRenderer from "./CannonDebugRenderer";
 import Physic from "./Physic";
 const altura = 3;
 const distancia = 6;
@@ -11,6 +12,7 @@ export default class Core {
   public physics: Physic;
   private renderer: THREE.WebGLRenderer;
   private canvas: HTMLCanvasElement;
+  private cannonDebugRenderer: CannonDebugRenderer;
 
   constructor() {
     cameraEvents.on(
@@ -59,10 +61,16 @@ export default class Core {
     this.light.position.set(1, 1, 1).normalize();
 
     this.scene.add(this.light);
+    this.cannonDebugRenderer = new CannonDebugRenderer(
+      this.scene,
+      this.physics.world,
+      {}
+    );
   }
 
   update(delta: number): void {
     this.physics.update(delta);
+    this.cannonDebugRenderer.update();
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
   }

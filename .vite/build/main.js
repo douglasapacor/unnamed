@@ -485,7 +485,6 @@ const createWindow = () => {
   });
   require$$3$1.Menu.setApplicationMenu(null);
   mainWindow.loadURL("http://localhost:5173");
-  mainWindow.webContents.openDevTools();
 };
 require$$3$1.app.on("ready", createWindow);
 require$$3$1.app.on("window-all-closed", () => {

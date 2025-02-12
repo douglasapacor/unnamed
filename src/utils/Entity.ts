@@ -4,16 +4,16 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export default class Entity {
   private model: THREE.Object3D;
+  private mSize: THREE.Vector3;
   private mixer: THREE.AnimationMixer;
   private animations: Record<string, THREE.AnimationAction> = {};
   private currentAnimation: THREE.AnimationAction | null = null;
   protected body: CANNON.Body;
-  private cube?: THREE.Mesh;
   private loader: GLTFLoader;
   private animTotal: number = 0;
   private animLoaded: number = 0;
   private GLTFloaded: boolean = false;
-  private animEnd: boolean = false;
+  public loaded: boolean = false;
   private movespeed: number = 0;
   private movement: {
     left: boolean;
@@ -23,28 +23,42 @@ export default class Entity {
     idle: boolean;
   } = { left: false, right: false, up: false, down: false, idle: true };
 
-  constructor(
-    private params: {
-      path: string;
-      scene: THREE.Scene;
-      world: CANNON.World;
-      debug?: boolean;
-    }
-  ) {
+  constructor(params: {
+    path: string;
+    scene: THREE.Scene;
+    world: CANNON.World;
+  }) {
     this.model = new THREE.Object3D();
     this.loader = new GLTFLoader();
-  }
-
-  public preload(): void {
     this.loader.load(
-      this.params.path,
+      params.path,
       (gltf) => {
         this.animTotal = gltf.animations.length;
-
         this.model = gltf.scene;
-        this.model.scale.set(1, 1, 1);
 
-        this.params.scene.add(this.model);
+        const box = new THREE.Box3().setFromObject(this.model);
+        this.mSize = new THREE.Vector3();
+
+        box.getSize(this.mSize);
+        params.scene.add(this.model);
+
+        this.body = new CANNON.Body({
+          mass: 1,
+          shape: new CANNON.Box(
+            new CANNON.Vec3(
+              this.mSize.x * 0.1,
+              this.mSize.y * 0.5,
+              this.mSize.z * 0.5
+            )
+          ),
+          velocity: new CANNON.Vec3(0, 0, 0),
+        });
+
+        this.body.fixedRotation = true;
+        this.body.angularDamping = 0.9;
+        this.body.updateMassProperties();
+
+        params.world.addBody(this.body);
 
         this.mixer = new THREE.AnimationMixer(this.model);
 
@@ -53,65 +67,47 @@ export default class Entity {
 
           this.animLoaded += 1;
 
-          if (this.animLoaded >= this.animTotal) this.animEnd = true;
+          if (this.animLoaded >= this.animTotal) this.loaded = true;
         });
       },
       (event) => {
-        if (event.loaded >= event.total) {
-          this.GLTFloaded = true;
-        }
+        if (event.loaded >= event.total) this.GLTFloaded = true;
+      },
+      (err: unknown) => {
+        console.error("Erro ao carregar modelo:", err);
       }
     );
   }
 
-  public create(): void {
-    const box = new THREE.Box3().setFromObject(this.model);
-    const size = new THREE.Vector3();
-
-    box.getSize(size);
-
-    this.body = new CANNON.Body({
-      mass: 1,
-      shape: new CANNON.Box(new CANNON.Vec3(size.x, size.y, size.z)),
-      velocity: new CANNON.Vec3(0, 0, 0),
-      position: new CANNON.Vec3(0, 1, 0),
-    });
-
-    this.body.fixedRotation = true;
-    this.body.angularDamping = 0.9;
-    this.body.updateMassProperties();
-
-    this.params.world.addBody(this.body);
-
-    if (this.params.debug) {
-      this.cube = new THREE.Mesh(
-        new THREE.BoxGeometry(size.x, size.y, size.z),
-        new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-          wireframe: true,
-        })
-      );
-
-      this.params.scene.add(this.cube);
-    }
-  }
-
   public update(delta: number): void {
-    if (this.mixer) this.mixer.update(delta * delta * 0.0001);
+    if (this.mixer) {
+      this.mixer.update(delta * delta * 0.0001);
+    }
 
-    this.align();
-    this.rotation();
-    this.move();
+    if (this.loaded) {
+      this.align();
+      this.rotation();
+      this.move();
+    }
   }
 
   private align(): void {
-    this.model.position.copy(this.body.position);
-    this.model.quaternion.copy(this.body.quaternion);
+    this.model.position.copy(
+      new THREE.Vector3(
+        this.body.position.x,
+        this.body.position.y - this.mSize.y * 0.5,
+        this.body.position.z
+      )
+    );
 
-    if (this.params.debug) {
-      this.cube.position.copy(this.body.position);
-      this.cube.quaternion.copy(this.body.quaternion);
-    }
+    this.model.quaternion.copy(
+      new THREE.Quaternion(
+        this.body.quaternion.x,
+        this.body.quaternion.y,
+        this.body.quaternion.z,
+        this.body.quaternion.w
+      )
+    );
 
     this.body.velocity.set(0, this.body.velocity.y, 0);
   }
@@ -133,17 +129,19 @@ export default class Entity {
   }
 
   private rotation(): void {
-    if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
-      this.model.rotation.y = THREE.MathUtils.lerp(
-        this.model.rotation.y,
-        Math.atan2(this.body.velocity.x, this.body.velocity.z),
-        1
-      );
+    if (this.loaded) {
+      if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
+        this.model.rotation.y = THREE.MathUtils.lerp(
+          this.model.rotation.y,
+          Math.atan2(this.body.velocity.x, this.body.velocity.z),
+          1
+        );
+      }
     }
   }
 
   public playAnimation(name: string, timeScale?: number): void {
-    if (!this.GLTFloaded || !this.animEnd) return;
+    if (!this.GLTFloaded || !this.loaded) return;
 
     if (!this.animations[name]) {
       console.warn(`A animação "${name}" não foi encontrada!`);
