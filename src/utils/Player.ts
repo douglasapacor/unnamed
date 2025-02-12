@@ -7,12 +7,11 @@ export default class Player extends Entity {
   constructor(params: {
     scene: THREE.Scene;
     world: CANNON.World;
-    input: Phaser.Input.InputPlugin;
     path: string;
   }) {
     super({
-      path: params.path,
       scene: params.scene,
+      path: params.path,
       world: params.world,
     });
   }
@@ -22,7 +21,6 @@ export default class Player extends Entity {
 
     if (this.loaded) {
       cameraEvents.emit("player_position", this.body.position);
-      this.playAnimation("idle_002");
     }
   }
 }

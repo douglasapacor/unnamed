@@ -6,55 +6,52 @@ interface ExtendedBody extends CANNON.Body {
 }
 
 export default class Terrain {
-  private groundBody!: ExtendedBody;
-  private groundShape!: CANNON.Plane;
-  private groundMesh!: THREE.Mesh;
-  private groundGeometry!: THREE.PlaneGeometry;
-  private groundMaterial!: THREE.MeshStandardMaterial;
+  private body: ExtendedBody;
+  private shape: CANNON.Box;
+  private mesh: THREE.Mesh;
+  private geometry: THREE.BoxGeometry;
+  private material: THREE.MeshStandardMaterial;
 
-  constructor(
-    private params: {
-      scene: THREE.Scene;
-      world: CANNON.World;
-      name?: string;
-    }
-  ) {}
-
-  preload(): void {
-    this.groundShape = new CANNON.Plane();
-    this.groundBody = new CANNON.Body({
+  constructor(params: {
+    scene: THREE.Scene;
+    world: CANNON.World;
+    name?: string;
+  }) {
+    this.shape = new CANNON.Box(new CANNON.Vec3(50, 0.3, 50));
+    this.body = new CANNON.Body({
       mass: 0,
-      shape: this.groundShape,
+      shape: this.shape,
+      position: new CANNON.Vec3(0, -5, 0),
     });
-    this.groundBody.data = { type: "ground" };
-    this.groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
-    this.params.world.addBody(this.groundBody);
+    this.body.data = { type: "ground" };
 
-    this.groundGeometry = new THREE.PlaneGeometry(50, 50);
-    this.groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-    this.groundMesh = new THREE.Mesh(this.groundGeometry, this.groundMaterial);
-    this.groundMesh.receiveShadow = true;
-    this.groundMesh.rotation.x = -Math.PI / 2;
+    params.world.addBody(this.body);
 
-    this.params.scene.add(this.groundMesh);
+    this.geometry = new THREE.BoxGeometry(100, 0.6, 100);
+    this.material = new THREE.MeshStandardMaterial({ color: 0x996600 });
+
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh.receiveShadow = true;
+
+    params.scene.add(this.mesh);
   }
 
   update(delta: number) {
-    this.groundMesh.position.copy(
+    this.mesh.position.copy(
       new THREE.Vector3(
-        this.groundBody.position.x,
-        this.groundBody.position.y,
-        this.groundBody.position.z
+        this.body.position.x,
+        this.body.position.y,
+        this.body.position.z
       )
     );
 
-    this.groundMesh.quaternion.copy(
+    this.mesh.quaternion.copy(
       new THREE.Quaternion(
-        this.groundBody.quaternion.x,
-        this.groundBody.quaternion.y,
-        this.groundBody.quaternion.z,
-        this.groundBody.quaternion.w
+        this.body.quaternion.x,
+        this.body.quaternion.y,
+        this.body.quaternion.z,
+        this.body.quaternion.w
       )
     );
   }

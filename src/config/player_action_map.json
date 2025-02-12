@@ -1,0 +1,7 @@
+{
+  "move_to_north": "w",
+  "move_to_south": "s",
+  "move_to_west": "a",
+  "move_to_east": "d",
+  "run": "shift"
+}
