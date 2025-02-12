@@ -15,7 +15,7 @@ export default class Entity {
   private GLTFloaded: boolean = false;
   public loaded: boolean = false;
   private movespeed: number = 0;
-  private movement: {
+  public movement: {
     left: boolean;
     right: boolean;
     up: boolean;
@@ -30,16 +30,15 @@ export default class Entity {
   }) {
     this.model = new THREE.Object3D();
     this.loader = new GLTFLoader();
+    this.mSize = new THREE.Vector3();
     this.loader.load(
       params.path,
       (gltf) => {
         this.animTotal = gltf.animations.length;
         this.model = gltf.scene;
 
-        const box = new THREE.Box3().setFromObject(this.model);
-        this.mSize = new THREE.Vector3();
+        new THREE.Box3().setFromObject(this.model).getSize(this.mSize);
 
-        box.getSize(this.mSize);
         params.scene.add(this.model);
 
         this.body = new CANNON.Body({
@@ -53,7 +52,6 @@ export default class Entity {
           ),
           velocity: new CANNON.Vec3(0, 0, 0),
         });
-
         this.body.fixedRotation = true;
         this.body.angularDamping = 0.9;
         this.body.updateMassProperties();
@@ -80,9 +78,7 @@ export default class Entity {
   }
 
   public update(delta: number): void {
-    if (this.mixer) {
-      this.mixer.update(delta * delta * 0.0001);
-    }
+    if (this.mixer) this.mixer.update(delta * delta * 0.0001);
 
     if (this.loaded) {
       this.align();
@@ -129,14 +125,16 @@ export default class Entity {
   }
 
   private rotation(): void {
-    if (this.loaded) {
-      if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
-        this.model.rotation.y = THREE.MathUtils.lerp(
-          this.model.rotation.y,
-          Math.atan2(this.body.velocity.x, this.body.velocity.z),
-          1
-        );
-      }
+    const velocity = this.body.velocity;
+
+    if (velocity.x !== 0 || velocity.z !== 0) {
+      const targetRotation = Math.atan2(velocity.x, velocity.y);
+
+      this.model.rotation.y = THREE.MathUtils.lerp(
+        this.model.rotation.y,
+        targetRotation,
+        0.1
+      );
     }
   }
 

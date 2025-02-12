@@ -20,7 +20,7 @@ export class Attributes {
     this.dexterity = 10;
     this.intelligence = 10;
 
-    this.speed = 14;
+    this.speed = 24;
     this.jumpForce = 10;
   }
 }
