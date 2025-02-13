@@ -17,7 +17,7 @@ export default class Terrain {
     world: CANNON.World;
     name?: string;
   }) {
-    this.shape = new CANNON.Box(new CANNON.Vec3(50, 0.3, 50));
+    this.shape = new CANNON.Box(new CANNON.Vec3(80, 0.3, 80));
     this.body = new CANNON.Body({
       mass: 0,
       shape: this.shape,
@@ -25,10 +25,9 @@ export default class Terrain {
     });
 
     this.body.data = { type: "ground" };
-
     params.world.addBody(this.body);
 
-    this.geometry = new THREE.BoxGeometry(100, 0.6, 100);
+    this.geometry = new THREE.BoxGeometry(160, 0.6, 160);
     this.material = new THREE.MeshStandardMaterial({ color: 0x996600 });
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);

@@ -1,10 +1,8 @@
 import * as THREE from "three";
 import { cameraEvents } from "../helpers/events";
-import CannonDebugRenderer from "./CannonDebugRenderer";
+import DebugRenderer from "./DebugRenderer";
 import Physic from "./Physic";
-const altura = 3;
-const distancia = 6;
-const lerpFactor = 0.1;
+
 export default class Core {
   public scene: THREE.Scene;
   public light: THREE.DirectionalLight;
@@ -12,20 +10,16 @@ export default class Core {
   public physics: Physic;
   private renderer: THREE.WebGLRenderer;
   private canvas: HTMLCanvasElement;
-  private cannonDebugRenderer: CannonDebugRenderer;
+  private debugRenderer: DebugRenderer;
 
-  constructor() {
+  constructor(private debug?: boolean) {
     cameraEvents.on(
       "player_position",
       this,
       (position: { x: number; y: number; z: number }) => {
         this.camera.position.lerp(
-          new THREE.Vector3(
-            position.x,
-            position.y + altura,
-            position.z + distancia
-          ),
-          lerpFactor
+          new THREE.Vector3(position.x, position.y + 2, position.z + 6),
+          0.5
         );
       }
     );
@@ -45,7 +39,6 @@ export default class Core {
       canvas: this.canvas,
       alpha: true,
     });
-
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.scene = new THREE.Scene();
@@ -61,16 +54,21 @@ export default class Core {
     this.light.position.set(1, 1, 1).normalize();
 
     this.scene.add(this.light);
-    this.cannonDebugRenderer = new CannonDebugRenderer(
-      this.scene,
-      this.physics.world,
-      {}
-    );
+
+    if (this.debug) {
+      this.debugRenderer = new DebugRenderer(
+        this.scene,
+        this.physics.world,
+        {}
+      );
+    }
   }
 
   update(delta: number): void {
+    if (this.debug) this.debugRenderer.update();
+
     this.physics.update(delta);
-    this.cannonDebugRenderer.update();
+
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.camera);
   }

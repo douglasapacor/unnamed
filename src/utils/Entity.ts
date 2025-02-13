@@ -3,18 +3,19 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export default class Entity {
-  private model: THREE.Object3D;
+  public model: THREE.Object3D;
   private mSize: THREE.Vector3;
   private mixer: THREE.AnimationMixer;
   private animations: Record<string, THREE.AnimationAction> = {};
   private currentAnimation: THREE.AnimationAction | null = null;
-  protected body: CANNON.Body;
+  public body: CANNON.Body;
   private loader: GLTFLoader;
   private animTotal: number = 0;
   private animLoaded: number = 0;
   private GLTFloaded: boolean = false;
   public loaded: boolean = false;
   private movespeed: number = 0;
+  private lastRotationY: number = 0;
   public movement: {
     left: boolean;
     right: boolean;
@@ -27,8 +28,20 @@ export default class Entity {
     path: string;
     scene: THREE.Scene;
     world: CANNON.World;
+    position?: CANNON.Vec3;
   }) {
     this.model = new THREE.Object3D();
+
+    if (params.position) {
+      this.model.position.copy(
+        new THREE.Vector3(
+          params.position.x,
+          params.position.y,
+          params.position.z
+        )
+      );
+    }
+
     this.loader = new GLTFLoader();
     this.mSize = new THREE.Vector3();
     this.loader.load(
@@ -50,8 +63,10 @@ export default class Entity {
               this.mSize.z * 0.5
             )
           ),
+          position: params.position,
           velocity: new CANNON.Vec3(0, 0, 0),
         });
+
         this.body.fixedRotation = true;
         this.body.angularDamping = 0.9;
         this.body.updateMassProperties();
@@ -62,9 +77,7 @@ export default class Entity {
 
         gltf.animations.forEach((clip) => {
           this.animations[clip.name] = this.mixer.clipAction(clip);
-
           this.animLoaded += 1;
-
           if (this.animLoaded >= this.animTotal) this.loaded = true;
         });
       },
@@ -104,8 +117,6 @@ export default class Entity {
         this.body.quaternion.w
       )
     );
-
-    this.body.velocity.set(0, this.body.velocity.y, 0);
   }
 
   private move(): void {
@@ -125,17 +136,20 @@ export default class Entity {
   }
 
   private rotation(): void {
-    const velocity = this.body.velocity;
-
-    if (velocity.x !== 0 || velocity.z !== 0) {
-      const targetRotation = Math.atan2(velocity.x, velocity.y);
+    if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
+      const targetRotation = Math.atan2(
+        this.body.velocity.x,
+        this.body.velocity.z
+      );
 
       this.model.rotation.y = THREE.MathUtils.lerp(
         this.model.rotation.y,
         targetRotation,
-        0.1
+        1
       );
-    }
+
+      this.lastRotationY = this.model.rotation.y;
+    } else this.model.rotation.y = this.lastRotationY;
   }
 
   public playAnimation(name: string, timeScale?: number): void {
@@ -147,11 +161,10 @@ export default class Entity {
     }
 
     if (this.currentAnimation === this.animations[name]) return;
-
-    if (this.currentAnimation) this.currentAnimation.fadeOut(0.5);
+    if (this.currentAnimation) this.currentAnimation.fadeOut(0.7);
 
     this.currentAnimation = this.animations[name];
-    this.currentAnimation.reset().fadeIn(0.5).play();
+    this.currentAnimation.reset().fadeIn(0.7).play();
     this.currentAnimation.timeScale = timeScale ? timeScale : 0.7;
   }
 

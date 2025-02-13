@@ -1,6 +1,8 @@
+import * as CANNON from "cannon-es";
 import { Scene } from "phaser";
 import { MODELS } from "../config/directories";
 import Core from "../utils/Core";
+import Enemy from "../utils/Enemy";
 import Player from "../utils/Player";
 import Terrain from "../utils/Terrain";
 
@@ -8,6 +10,7 @@ export default class MainScenes extends Scene {
   private core: Core = new Core();
   private terrain: Terrain;
   private player: Player;
+  private actors: any[] = [];
 
   constructor() {
     super("MainScene");
@@ -24,6 +27,15 @@ export default class MainScenes extends Scene {
       scene: this.core.scene,
       world: this.core.physics.world,
     });
+
+    this.actors.push(
+      new Enemy({
+        path: MODELS.enemy,
+        scene: this.core.scene,
+        world: this.core.physics.world,
+        position: new CANNON.Vec3(1, -4, 1),
+      })
+    );
   }
 
   create() {
@@ -65,5 +77,8 @@ export default class MainScenes extends Scene {
     this.core.update(delta);
     this.terrain.update(delta);
     this.player.update(delta);
+
+    if (this.actors.length > 0)
+      this.actors.forEach((actor) => actor.update(delta));
   }
 }

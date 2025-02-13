@@ -1,7 +1,7 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 
-export default class CannonDebugRenderer {
+export default class DebugRenderer {
   public scene: THREE.Scene;
   public world: CANNON.World;
   private _meshes: THREE.Mesh[] | THREE.Points[];
