@@ -1,6 +1,6 @@
 export default class Life {
-  public total: number;
-  public current: number;
+  private total: number;
+  private current: number;
   public percent: string;
 
   constructor(total: number, current: number) {
@@ -15,12 +15,12 @@ export default class Life {
   }
 
   damage(value: number) {
-    this.current - value;
+    this.current -= value;
     this.calculate();
   }
 
   heal(value: number) {
-    this.current + value;
+    this.current += value;
     this.calculate();
   }
 }

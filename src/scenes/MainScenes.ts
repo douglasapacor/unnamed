@@ -7,7 +7,7 @@ import Player from "../utils/Player";
 import Terrain from "../utils/Terrain";
 
 export default class MainScenes extends Scene {
-  private core: Core = new Core();
+  private core: Core = new Core(true);
   private terrain: Terrain;
   private player: Player;
   private actors: any[] = [];
