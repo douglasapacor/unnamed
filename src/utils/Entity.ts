@@ -54,11 +54,9 @@ export default class Entity {
         collisionFilterMask: -1,
         collisionResponse: false,
       });
-
       this.perceptionBody.data = `perception-${this.params.name}-body`;
-
       this.perceptionBody.addEventListener("collide", (event: any) =>
-        this.onEnterPerceptionArea(event.body)
+        this.onEnterPerceptionBody(event.body)
       );
 
       if (this.params.position)
@@ -207,7 +205,7 @@ export default class Entity {
     } else this.model.rotation.y = this.lastRotationY;
   }
 
-  private onEnterPerceptionArea(body: ECANNONBody): void {
+  private onEnterPerceptionBody(body: ECANNONBody): void {
     if (this.loaded) {
       if (body.data !== this.collisionBody.data) {
         if (!this.detectedBodys.has(body)) {
