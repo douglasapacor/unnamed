@@ -5,19 +5,22 @@ import { Attributes } from "./Attributes";
 import Entity from "./Entity";
 
 export default class Player extends Entity {
-  attributes: Attributes = new Attributes();
+  public attributes: Attributes = new Attributes();
 
   constructor(params: {
     scene: THREE.Scene;
     world: CANNON.World;
     path: string;
     position?: CANNON.Vec3;
+    perceptionRadius?: number;
   }) {
     super({
       scene: params.scene,
       path: params.path,
       world: params.world,
       position: params.position,
+      perceptionRadius: params.perceptionRadius,
+      name: "player",
     });
   }
 
@@ -31,6 +34,14 @@ export default class Player extends Entity {
 
     if (this.movement.idle) this.playAnimation("idle_001");
 
-    if (this.loaded) cameraEvents.emit("player_position", this.body.position);
+    if (this.loaded)
+      cameraEvents.emit(
+        "player_position",
+        new THREE.Vector3(
+          this.collisionBody.position.x,
+          this.collisionBody.position.y,
+          this.collisionBody.position.z
+        )
+      );
   }
 }

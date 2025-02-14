@@ -2,8 +2,6 @@ import * as CANNON from "cannon-es";
 import * as THREE from "three";
 
 export default class DebugRenderer {
-  public scene: THREE.Scene;
-  public world: CANNON.World;
   private _meshes: THREE.Mesh[] | THREE.Points[];
   private _material: THREE.MeshBasicMaterial;
   private _particleMaterial = new THREE.PointsMaterial();
@@ -12,25 +10,19 @@ export default class DebugRenderer {
   private _cylinderGeometry: THREE.CylinderGeometry;
   private _planeGeometry: THREE.PlaneGeometry;
   private _particleGeometry: THREE.BufferGeometry;
-
   private tmpVec0: CANNON.Vec3 = new CANNON.Vec3();
   private tmpVec1: CANNON.Vec3 = new CANNON.Vec3();
   private tmpVec2: CANNON.Vec3 = new CANNON.Vec3();
   private tmpQuat0: CANNON.Quaternion = new CANNON.Quaternion();
 
-  constructor(scene: THREE.Scene, world: CANNON.World, options?: object) {
-    options = options || {};
-
+  constructor(private scene: THREE.Scene, private world: CANNON.World) {
     this.scene = scene;
     this.world = world;
-
     this._meshes = [];
-
     this._material = new THREE.MeshBasicMaterial({
       color: 0x00ff00,
       wireframe: true,
     });
-
     this._particleMaterial = new THREE.PointsMaterial({
       color: 0xff0000,
       size: 10,
@@ -64,17 +56,14 @@ export default class DebugRenderer {
         const mesh = meshes[meshIndex];
 
         if (mesh) {
-          // Get world position
           body.quaternion.vmult(body.shapeOffsets[j], shapeWorldPosition);
           body.position.vadd(shapeWorldPosition, shapeWorldPosition);
-
-          // Get world quaternion
           body.quaternion.mult(body.shapeOrientations[j], shapeWorldQuaternion);
 
-          // Copy to meshes
           mesh.position.x = shapeWorldPosition.x;
           mesh.position.y = shapeWorldPosition.y;
           mesh.position.z = shapeWorldPosition.z;
+
           mesh.quaternion.x = shapeWorldQuaternion.x;
           mesh.quaternion.y = shapeWorldQuaternion.y;
           mesh.quaternion.z = shapeWorldQuaternion.z;
@@ -110,9 +99,7 @@ export default class DebugRenderer {
     mesh: THREE.Mesh | THREE.Points,
     shape: CANNON.Shape
   ): boolean {
-    if (!mesh) {
-      return false;
-    }
+    if (!mesh) return false;
     const geo: THREE.BufferGeometry = mesh.geometry;
     return (
       (geo instanceof THREE.SphereGeometry && shape instanceof CANNON.Sphere) ||
@@ -261,10 +248,7 @@ export default class DebugRenderer {
         break;
     }
 
-    if (mesh && mesh.geometry) {
-      this.scene.add(mesh);
-    }
-
+    if (mesh && mesh.geometry) this.scene.add(mesh);
     return mesh;
   }
 

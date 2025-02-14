@@ -1,7 +1,7 @@
 import * as CANNON from "cannon-es";
 
-export default class Physic {
-  public world!: CANNON.World;
+export default class PhysicController {
+  public world: CANNON.World;
 
   constructor() {
     this.world = new CANNON.World();

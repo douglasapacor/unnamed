@@ -4,19 +4,23 @@ import { Attributes } from "./Attributes";
 import Entity from "./Entity";
 
 export default class Enemy extends Entity {
-  attributes: Attributes = new Attributes();
+  public attributes: Attributes = new Attributes();
 
   constructor(params: {
     scene: THREE.Scene;
     world: CANNON.World;
     path: string;
     position?: CANNON.Vec3;
+    perceptionRadius?: number;
+    name?: string;
   }) {
     super({
       scene: params.scene,
       path: params.path,
       world: params.world,
       position: params.position,
+      perceptionRadius: params.perceptionRadius,
+      name: params.name,
     });
   }
 

@@ -2,13 +2,17 @@ import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
+interface ECANNONBody extends CANNON.Body {
+  data?: any;
+}
+
 export default class Entity {
   public model: THREE.Object3D;
   private mSize: THREE.Vector3;
   private mixer: THREE.AnimationMixer;
   private animations: Record<string, THREE.AnimationAction> = {};
   private currentAnimation: THREE.AnimationAction | null = null;
-  public body: CANNON.Body;
+  public collisionBody: ECANNONBody;
   private loader: GLTFLoader;
   private animTotal: number = 0;
   private animLoaded: number = 0;
@@ -23,38 +27,69 @@ export default class Entity {
     down: boolean;
     idle: boolean;
   } = { left: false, right: false, up: false, down: false, idle: true };
+  private perceptionBody: ECANNONBody;
+  public detectedBodys = new Set<ECANNONBody>();
+  public alert: boolean = false;
 
-  constructor(params: {
-    path: string;
-    scene: THREE.Scene;
-    world: CANNON.World;
-    position?: CANNON.Vec3;
-  }) {
+  constructor(
+    private params: {
+      path: string;
+      scene: THREE.Scene;
+      world: CANNON.World;
+      position?: CANNON.Vec3;
+      perceptionRadius?: number;
+      name?: string;
+    }
+  ) {
     this.model = new THREE.Object3D();
+    this.mSize = new THREE.Vector3();
+    this.loader = new GLTFLoader();
 
-    if (params.position) {
+    if (this.params.perceptionRadius) {
+      this.perceptionBody = new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Sphere(this.params.perceptionRadius),
+        type: CANNON.Body.KINEMATIC,
+        collisionFilterGroup: 2,
+        collisionFilterMask: -1,
+        collisionResponse: false,
+      });
+
+      this.perceptionBody.data = `perception-${this.params.name}-body`;
+
+      this.perceptionBody.addEventListener("collide", (event: any) =>
+        this.onEnterPerceptionArea(event.body)
+      );
+
+      if (this.params.position)
+        this.perceptionBody.position.copy(this.params.position);
+
+      this.params.world.addBody(this.perceptionBody);
+    }
+
+    if (this.params.position) {
       this.model.position.copy(
         new THREE.Vector3(
-          params.position.x,
-          params.position.y,
-          params.position.z
+          this.params.position.x,
+          this.params.position.y,
+          this.params.position.z
         )
       );
     }
 
-    this.loader = new GLTFLoader();
-    this.mSize = new THREE.Vector3();
     this.loader.load(
-      params.path,
+      this.params.path,
       (gltf) => {
         this.animTotal = gltf.animations.length;
         this.model = gltf.scene;
 
         new THREE.Box3().setFromObject(this.model).getSize(this.mSize);
 
-        params.scene.add(this.model);
+        this.params.scene.add(this.model);
 
-        this.body = new CANNON.Body({
+        this.mixer = new THREE.AnimationMixer(this.model);
+
+        this.collisionBody = new CANNON.Body({
           mass: 1,
           shape: new CANNON.Box(
             new CANNON.Vec3(
@@ -63,17 +98,17 @@ export default class Entity {
               this.mSize.z * 0.5
             )
           ),
-          position: params.position,
+          position: this.params.position,
           velocity: new CANNON.Vec3(0, 0, 0),
         });
 
-        this.body.fixedRotation = true;
-        this.body.angularDamping = 0.9;
-        this.body.updateMassProperties();
+        this.collisionBody.data = `${this.params.name}-body`;
 
-        params.world.addBody(this.body);
+        this.collisionBody.fixedRotation = true;
+        this.collisionBody.angularDamping = 0.9;
+        this.collisionBody.updateMassProperties();
 
-        this.mixer = new THREE.AnimationMixer(this.model);
+        this.params.world.addBody(this.collisionBody);
 
         gltf.animations.forEach((clip) => {
           this.animations[clip.name] = this.mixer.clipAction(clip);
@@ -97,33 +132,50 @@ export default class Entity {
       this.align();
       this.rotation();
       this.move();
+      this.perception();
     }
+  }
+
+  private perception(): void {
+    this.detectedBodys.forEach((body) => {
+      const distance = this.perceptionBody.position.distanceTo(body.position);
+      if (distance > this.params.perceptionRadius + 0.3) {
+        this.detectedBodys.delete(body);
+
+        if (this.detectedBodys.size <= 0) {
+          this.alert = false;
+        }
+      }
+    });
   }
 
   private align(): void {
     this.model.position.copy(
       new THREE.Vector3(
-        this.body.position.x,
-        this.body.position.y - this.mSize.y * 0.5,
-        this.body.position.z
+        this.collisionBody.position.x,
+        this.collisionBody.position.y - this.mSize.y * 0.5,
+        this.collisionBody.position.z
       )
     );
 
+    if (this.params.perceptionRadius)
+      this.perceptionBody.position.copy(this.collisionBody.position);
+
     this.model.quaternion.copy(
       new THREE.Quaternion(
-        this.body.quaternion.x,
-        this.body.quaternion.y,
-        this.body.quaternion.z,
-        this.body.quaternion.w
+        this.collisionBody.quaternion.x,
+        this.collisionBody.quaternion.y,
+        this.collisionBody.quaternion.z,
+        this.collisionBody.quaternion.w
       )
     );
   }
 
   private move(): void {
-    if (this.movement.up) this.body.velocity.z -= this.movespeed;
-    if (this.movement.down) this.body.velocity.z += this.movespeed;
-    if (this.movement.left) this.body.velocity.x -= this.movespeed;
-    if (this.movement.right) this.body.velocity.x += this.movespeed;
+    if (this.movement.up) this.collisionBody.velocity.z -= this.movespeed;
+    if (this.movement.down) this.collisionBody.velocity.z += this.movespeed;
+    if (this.movement.left) this.collisionBody.velocity.x -= this.movespeed;
+    if (this.movement.right) this.collisionBody.velocity.x += this.movespeed;
 
     if (
       !this.movement.up &&
@@ -136,10 +188,13 @@ export default class Entity {
   }
 
   private rotation(): void {
-    if (this.body.velocity.x !== 0 || this.body.velocity.z !== 0) {
+    if (
+      this.collisionBody.velocity.x !== 0 ||
+      this.collisionBody.velocity.z !== 0
+    ) {
       const targetRotation = Math.atan2(
-        this.body.velocity.x,
-        this.body.velocity.z
+        this.collisionBody.velocity.x,
+        this.collisionBody.velocity.z
       );
 
       this.model.rotation.y = THREE.MathUtils.lerp(
@@ -150,6 +205,17 @@ export default class Entity {
 
       this.lastRotationY = this.model.rotation.y;
     } else this.model.rotation.y = this.lastRotationY;
+  }
+
+  private onEnterPerceptionArea(body: ECANNONBody): void {
+    if (this.loaded) {
+      if (body.data !== this.collisionBody.data) {
+        if (!this.detectedBodys.has(body)) {
+          this.detectedBodys.add(body);
+          this.alert = true;
+        }
+      }
+    }
   }
 
   public playAnimation(name: string, timeScale?: number): void {
@@ -175,6 +241,7 @@ export default class Entity {
   public walkLeftOff(): void {
     this.movement.left = false;
   }
+
   public walkRightOn(speed: number): void {
     this.movespeed = speed;
     this.movement.right = true;
@@ -182,6 +249,7 @@ export default class Entity {
   public walkRightOff(): void {
     this.movement.right = false;
   }
+
   public walkUpOn(speed: number): void {
     this.movespeed = speed;
     this.movement.up = true;
@@ -189,6 +257,7 @@ export default class Entity {
   public walkUpOff(): void {
     this.movement.up = false;
   }
+
   public walkDownOn(speed: number): void {
     this.movespeed = speed;
     this.movement.down = true;
