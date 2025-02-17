@@ -28,7 +28,7 @@ export default class Collider {
       mass: 0,
       shape: new CANNON.Sphere(this.radius),
       type: CANNON.Body.KINEMATIC,
-      collisionResponse: this.param.collisionResponse ? true : false,
+      collisionResponse: this.param.collisionResponse,
     });
 
     this.collider.name = this.param.name;

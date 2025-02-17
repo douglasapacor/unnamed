@@ -26,6 +26,7 @@ export default class MainScenes extends Scene {
       path: MODELS.dummy,
       scene: this.core.scene,
       world: this.core.physicsController.world,
+      position: new CANNON.Vec3(14, 1, 14),
     });
 
     this.actors.push(
@@ -33,7 +34,7 @@ export default class MainScenes extends Scene {
         path: MODELS.enemy,
         scene: this.core.scene,
         world: this.core.physicsController.world,
-        position: new CANNON.Vec3(2, -4, 2),
+        position: new CANNON.Vec3(2, 3, 2),
         name: "enemy",
       })
     );

@@ -24,7 +24,7 @@ export default class Enemy extends Entity {
     });
 
     this.enemies = new Collider(
-      { name: "enemies", radius: 3, ignore: ["enemy-body"] },
+      { name: "enemies", radius: 3, ignore: ["enemy"], debug: true },
       params.scene,
       params.world
     );

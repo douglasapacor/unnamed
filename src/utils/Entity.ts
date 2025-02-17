@@ -84,7 +84,7 @@ export default class Entity {
           velocity: new CANNON.Vec3(0, 0, 0),
         });
 
-        this.collisionBody.name = `${this.params.name}-body`;
+        this.collisionBody.name = this.params.name;
 
         this.collisionBody.fixedRotation = true;
         this.collisionBody.angularDamping = 0.9;
@@ -218,7 +218,6 @@ export default class Entity {
   public walkLeftOff(): void {
     this.movement.left = false;
   }
-
   public walkRightOn(speed: number): void {
     this.movespeed = speed;
     this.movement.right = true;
@@ -226,7 +225,6 @@ export default class Entity {
   public walkRightOff(): void {
     this.movement.right = false;
   }
-
   public walkUpOn(speed: number): void {
     this.movespeed = speed;
     this.movement.up = true;
@@ -234,7 +232,6 @@ export default class Entity {
   public walkUpOff(): void {
     this.movement.up = false;
   }
-
   public walkDownOn(speed: number): void {
     this.movespeed = speed;
     this.movement.down = true;
