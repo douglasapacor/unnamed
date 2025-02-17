@@ -2,51 +2,61 @@ import * as THREE from "three";
 import { cameraEvents } from "../helpers/events";
 
 export default class CameraController {
-  private zoomSpeed: number = 2;
+  public camera: THREE.OrthographicCamera;
+  private zoomLevel: number = 10;
   private minZoom: number = 1;
-  private maxZoom: number = 30;
-  private distanceX: number = 0;
-  private distanceY: number = 5;
-  private distanceZ: number = 15;
-  private offset: THREE.Vector3;
-  public camera: THREE.PerspectiveCamera;
+  private maxZoom: number = 10;
+  private zoomSpeed: number = 1;
+  private canZoom: boolean = true;
 
   constructor() {
-    window.addEventListener("wheel", this.onMouseWheel.bind(this));
+    const aspect = window.innerWidth / window.innerHeight;
 
-    this.camera = new THREE.PerspectiveCamera(
-      100,
-      window.innerWidth / window.innerHeight,
+    this.camera = new THREE.OrthographicCamera(
+      -this.zoomLevel * aspect,
+      this.zoomLevel * aspect,
+      this.zoomLevel,
+      -this.zoomLevel,
       0.1,
       1000
     );
 
     cameraEvents.on("player_position", this, (position: THREE.Vector3) => {
-      this.offset = new THREE.Vector3(
-        this.distanceX,
-        this.distanceY,
-        this.distanceZ
-      );
-
-      this.camera.position.copy(position.add(this.offset));
-
-      this.camera.lookAt(position);
+      this.updateCameraPosition(position);
     });
+
+    window.addEventListener("wheel", this.handleZoom);
   }
 
-  private onMouseWheel(event: WheelEvent) {
-    this.distanceZ += event.deltaY * 0.01 * this.zoomSpeed;
+  private updateCameraPosition(position: THREE.Vector3): void {
+    this.camera.position.set(position.x + 10, position.y + 10, position.z + 10);
+    this.camera.lookAt(position);
+  }
 
-    if (this.distanceZ <= 6.4) this.distanceY = 1;
-    if (this.distanceZ > 6.4 && this.distanceZ <= 12.8) this.distanceY = 2;
-    if (this.distanceZ > 12.8 && this.distanceZ <= 19.2) this.distanceY = 3;
-    if (this.distanceZ > 19.2 && this.distanceZ <= 25.6) this.distanceY = 4;
-    if (this.distanceZ > 25.6 && this.distanceZ <= 32) this.distanceY = 5;
+  private handleZoom = (event: WheelEvent): void => {
+    if (this.canZoom) {
+      const delta = event.deltaY > 0 ? this.zoomSpeed : -this.zoomSpeed;
 
-    this.distanceZ = THREE.MathUtils.clamp(
-      this.distanceZ,
-      this.minZoom,
-      this.maxZoom
-    );
+      this.zoomLevel = THREE.MathUtils.clamp(
+        this.zoomLevel + delta,
+        this.minZoom,
+        this.maxZoom
+      );
+
+      const aspect = window.innerWidth / window.innerHeight;
+      this.camera.left = -this.zoomLevel * aspect;
+      this.camera.right = this.zoomLevel * aspect;
+      this.camera.top = this.zoomLevel;
+      this.camera.bottom = -this.zoomLevel;
+      this.camera.updateProjectionMatrix();
+    }
+  };
+
+  public allowZoom(): void {
+    this.canZoom = true;
+  }
+
+  public denyZoom(): void {
+    this.canZoom = false;
   }
 }

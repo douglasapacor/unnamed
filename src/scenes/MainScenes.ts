@@ -26,7 +26,6 @@ export default class MainScenes extends Scene {
       path: MODELS.dummy,
       scene: this.core.scene,
       world: this.core.physicsController.world,
-      perceptionRadius: 1,
     });
 
     this.actors.push(
@@ -35,7 +34,6 @@ export default class MainScenes extends Scene {
         scene: this.core.scene,
         world: this.core.physicsController.world,
         position: new CANNON.Vec3(2, -4, 2),
-        perceptionRadius: 1,
         name: "enemy",
       })
     );
@@ -55,7 +53,7 @@ export default class MainScenes extends Scene {
       this.player.walkUpOff();
     });
 
-    // W key
+    // A key
     a.on("down", () => {
       this.player.walkLeftOn(this.player.attributes.speed);
     });

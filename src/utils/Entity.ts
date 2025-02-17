@@ -2,8 +2,16 @@ import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
+interface movement {
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  down: boolean;
+  idle: boolean;
+}
+
 interface ECANNONBody extends CANNON.Body {
-  data?: any;
+  name?: any;
 }
 
 export default class Entity {
@@ -20,16 +28,13 @@ export default class Entity {
   public loaded: boolean = false;
   private movespeed: number = 0;
   private lastRotationY: number = 0;
-  public movement: {
-    left: boolean;
-    right: boolean;
-    up: boolean;
-    down: boolean;
-    idle: boolean;
-  } = { left: false, right: false, up: false, down: false, idle: true };
-  private perceptionBody: ECANNONBody;
-  public detectedBodys = new Set<ECANNONBody>();
-  public alert: boolean = false;
+  public movement: movement = {
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+    idle: true,
+  };
 
   constructor(
     private params: {
@@ -37,33 +42,12 @@ export default class Entity {
       scene: THREE.Scene;
       world: CANNON.World;
       position?: CANNON.Vec3;
-      perceptionRadius?: number;
       name?: string;
     }
   ) {
     this.model = new THREE.Object3D();
     this.mSize = new THREE.Vector3();
     this.loader = new GLTFLoader();
-
-    if (this.params.perceptionRadius) {
-      this.perceptionBody = new CANNON.Body({
-        mass: 0,
-        shape: new CANNON.Sphere(this.params.perceptionRadius),
-        type: CANNON.Body.KINEMATIC,
-        collisionFilterGroup: 2,
-        collisionFilterMask: -1,
-        collisionResponse: false,
-      });
-      this.perceptionBody.data = `perception-${this.params.name}-body`;
-      this.perceptionBody.addEventListener("collide", (event: any) =>
-        this.onEnterPerceptionBody(event.body)
-      );
-
-      if (this.params.position)
-        this.perceptionBody.position.copy(this.params.position);
-
-      this.params.world.addBody(this.perceptionBody);
-    }
 
     if (this.params.position) {
       this.model.position.copy(
@@ -100,7 +84,7 @@ export default class Entity {
           velocity: new CANNON.Vec3(0, 0, 0),
         });
 
-        this.collisionBody.data = `${this.params.name}-body`;
+        this.collisionBody.name = `${this.params.name}-body`;
 
         this.collisionBody.fixedRotation = true;
         this.collisionBody.angularDamping = 0.9;
@@ -130,21 +114,7 @@ export default class Entity {
       this.align();
       this.rotation();
       this.move();
-      this.perception();
     }
-  }
-
-  private perception(): void {
-    this.detectedBodys.forEach((body) => {
-      const distance = this.perceptionBody.position.distanceTo(body.position);
-      if (distance > this.params.perceptionRadius + 0.3) {
-        this.detectedBodys.delete(body);
-
-        if (this.detectedBodys.size <= 0) {
-          this.alert = false;
-        }
-      }
-    });
   }
 
   private align(): void {
@@ -155,9 +125,6 @@ export default class Entity {
         this.collisionBody.position.z
       )
     );
-
-    if (this.params.perceptionRadius)
-      this.perceptionBody.position.copy(this.collisionBody.position);
 
     this.model.quaternion.copy(
       new THREE.Quaternion(
@@ -170,19 +137,42 @@ export default class Entity {
   }
 
   private move(): void {
-    if (this.movement.up) this.collisionBody.velocity.z -= this.movespeed;
-    if (this.movement.down) this.collisionBody.velocity.z += this.movespeed;
-    if (this.movement.left) this.collisionBody.velocity.x -= this.movespeed;
-    if (this.movement.right) this.collisionBody.velocity.x += this.movespeed;
+    let moveX = 0;
+    let moveZ = 0;
 
-    if (
-      !this.movement.up &&
-      !this.movement.down &&
-      !this.movement.left &&
-      !this.movement.right
-    )
-      this.movement.idle = true;
-    else this.movement.idle = false;
+    if (this.movement.up) {
+      moveZ -= 1;
+      moveX -= 1;
+    }
+
+    if (this.movement.down) {
+      moveX += 1;
+      moveZ += 1;
+    }
+
+    if (this.movement.left) {
+      moveX -= 1;
+      moveZ += 1;
+    }
+
+    if (this.movement.right) {
+      moveX += 1;
+      moveZ -= 1;
+    }
+
+    const direction = new CANNON.Vec3(moveX, 0, moveZ);
+
+    if (direction.length() > 0) {
+      direction.normalize();
+      direction.scale(this.movespeed, direction);
+      this.collisionBody.velocity.x = direction.x;
+      this.collisionBody.velocity.z = direction.z;
+    } else {
+      this.collisionBody.velocity.x = 0;
+      this.collisionBody.velocity.z = 0;
+    }
+
+    this.movement.idle = moveX === 0 && moveZ === 0;
   }
 
   private rotation(): void {
@@ -203,17 +193,6 @@ export default class Entity {
 
       this.lastRotationY = this.model.rotation.y;
     } else this.model.rotation.y = this.lastRotationY;
-  }
-
-  private onEnterPerceptionBody(body: ECANNONBody): void {
-    if (this.loaded) {
-      if (body.data !== this.collisionBody.data) {
-        if (!this.detectedBodys.has(body)) {
-          this.detectedBodys.add(body);
-          this.alert = true;
-        }
-      }
-    }
   }
 
   public playAnimation(name: string, timeScale?: number): void {

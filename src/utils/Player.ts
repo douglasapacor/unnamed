@@ -12,14 +12,12 @@ export default class Player extends Entity {
     world: CANNON.World;
     path: string;
     position?: CANNON.Vec3;
-    perceptionRadius?: number;
   }) {
     super({
       scene: params.scene,
       path: params.path,
       world: params.world,
       position: params.position,
-      perceptionRadius: params.perceptionRadius,
       name: "player",
     });
   }
@@ -34,7 +32,7 @@ export default class Player extends Entity {
 
     if (this.movement.idle) this.playAnimation("idle_001");
 
-    if (this.loaded)
+    if (this.loaded) {
       cameraEvents.emit(
         "player_position",
         new THREE.Vector3(
@@ -43,5 +41,6 @@ export default class Player extends Entity {
           this.collisionBody.position.z
         )
       );
+    }
   }
 }

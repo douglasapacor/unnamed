@@ -6,7 +6,6 @@ export class Attributes {
   public dexterity: number;
   public intelligence: number;
   public speed: number;
-  public jumpForce: number;
 
   constructor() {
     this.name = "vodka";
@@ -15,7 +14,6 @@ export class Attributes {
     this.dexterity = 10;
     this.intelligence = 10;
 
-    this.speed = 18;
-    this.jumpForce = 10;
+    this.speed = 20;
   }
 }
