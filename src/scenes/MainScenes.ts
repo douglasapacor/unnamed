@@ -1,6 +1,5 @@
 import { Vec3 } from "cannon-es";
 import { Scene } from "phaser";
-import { Vector3 } from "three";
 import { MODELS } from "../config/directories";
 import Core from "../utils/Core";
 import Player from "../utils/Player";
@@ -10,17 +9,21 @@ export default class MainScenes extends Scene {
   private core: Core;
   private terrain: Terrain;
   private player: Player;
-  private playerText: Phaser.GameObjects.Text;
 
   constructor() {
     super("MainScene");
     this.core = new Core();
 
+    this.terrain = new Terrain({
+      scene: this.core.scene,
+      world: this.core.physicsController.world,
+    });
+
     this.player = new Player({
       path: MODELS.dummy,
       scene: this.core.scene,
       world: this.core.physicsController.world,
-      position: new Vec3(0, 0, 0),
+      position: new Vec3(0, 1, 0),
     });
   }
 
@@ -29,21 +32,6 @@ export default class MainScenes extends Scene {
   }
 
   create() {
-    this.playerText = this.add
-      .text(0, 0, "Jogador", {
-        fontSize: "16px",
-        color: "#ffffff",
-        backgroundColor: "#000000",
-        padding: { x: 5, y: 2 },
-      })
-      .setOrigin(0.5, 1)
-      .setDepth(1000);
-
-    this.terrain = new Terrain({
-      scene: this.core.scene,
-      world: this.core.physicsController.world,
-    });
-
     let wKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     let aKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     let sKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -87,17 +75,14 @@ export default class MainScenes extends Scene {
     this.terrain.update(delta);
     this.player.update(delta);
 
-    if (this.player.collisionBody) {
-      const playerScreenPos = this.core.cameraController.toScreenPosition(
-        new Vector3(
-          this.player.collisionBody.position.x,
-          this.player.collisionBody.position.y,
-          this.player.collisionBody.position.z
-        )
+    if (this.player.collisionBody)
+      this.player.setText(
+        `X: ${this.player.collisionBody.position.x.toFixed(
+          2
+        )} | y: ${this.player.collisionBody.position.y.toFixed(
+          2
+        )} | z: ${this.player.collisionBody.position.z.toFixed(2)}`
       );
-
-      this.playerText.setPosition(playerScreenPos.x, playerScreenPos.y - 50);
-    }
 
     // if (this.actors.length > 0)
     //   this.actors.forEach((actor) => actor.update(delta));
