@@ -1,6 +1,6 @@
 import * as CANNON from "cannon-es";
 
-export default class PhysicController {
+export default class Physic {
   public world: CANNON.World;
 
   constructor() {

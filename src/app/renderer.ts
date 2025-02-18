@@ -1,4 +1,5 @@
-import Game from "./Game";
+import MainScene from "../game/scenes/MainScene";
+import Game from "../lib/Game";
 import "./index.css";
 
-new Game("main");
+new Game({ scenes: [MainScene] });

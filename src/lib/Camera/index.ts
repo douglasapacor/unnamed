@@ -1,36 +1,41 @@
 import * as THREE from "three";
-import { cameraEvents } from "../helpers/events";
+import { cameraEvents } from "../../helpers/events";
 
-export default class CameraController {
+export default class Camera {
   public camera: THREE.OrthographicCamera;
   private zoomLevel: number = 10;
   private minZoom: number = 1;
   private maxZoom: number = 10;
   private zoomSpeed: number = 1;
   private canZoom: boolean = true;
+  private aspect: number;
 
   constructor() {
-    const aspect = window.innerWidth / window.innerHeight;
+    this.aspect = window.innerWidth / window.innerHeight;
 
     this.camera = new THREE.OrthographicCamera(
-      -this.zoomLevel * aspect,
-      this.zoomLevel * aspect,
+      -this.zoomLevel * this.aspect,
+      this.zoomLevel * this.aspect,
       this.zoomLevel,
       -this.zoomLevel,
       0.1,
       1000
     );
 
-    cameraEvents.on("player_position", this, (position: THREE.Vector3) => {
-      this.updateCameraPosition(position);
+    cameraEvents.on({
+      name: "camera_focus",
+      caller: this,
+      callback: (position: THREE.Vector3) => {
+        this.camera.position.set(
+          position.x + 10,
+          position.y + 10,
+          position.z + 10
+        );
+        this.camera.lookAt(position);
+      },
     });
 
     window.addEventListener("wheel", this.handleZoom);
-  }
-
-  private updateCameraPosition(position: THREE.Vector3): void {
-    this.camera.position.set(position.x + 10, position.y + 10, position.z + 10);
-    this.camera.lookAt(position);
   }
 
   private handleZoom = (event: WheelEvent): void => {
@@ -62,6 +67,7 @@ export default class CameraController {
 
   public toScreenPosition(position: THREE.Vector3) {
     const vector = new THREE.Vector3(position.x, position.y, position.z);
+
     vector.project(this.camera);
 
     const widthHalf = window.innerWidth / 2;

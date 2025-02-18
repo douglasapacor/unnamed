@@ -1,8 +1,8 @@
 {
-  "name": "laboratory",
-  "productName": "laboratory",
+  "name": "unnamed",
+  "productName": "unnamed",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "My electron game try.",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -11,38 +11,36 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
-  "devDependencies": {
-    "@electron-forge/cli": "^7.6.0",
-    "@electron-forge/maker-deb": "^7.6.0",
-    "@electron-forge/maker-rpm": "^7.6.0",
-    "@electron-forge/maker-squirrel": "^7.6.0",
-    "@electron-forge/maker-zip": "^7.6.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.6.0",
-    "@electron-forge/plugin-fuses": "^7.6.0",
-    "@electron-forge/plugin-vite": "^7.6.0",
-    "@electron/fuses": "^1.8.0",
-    "@types/electron-squirrel-startup": "^1.0.2",
-    "@types/three": "^0.172.0",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "electron": "34.0.0",
-    "eslint": "^8.57.1",
-    "eslint-plugin-import": "^2.31.0",
-    "ts-node": "^10.9.2",
-    "typescript": "~4.5.4",
-    "vite": "^5.4.14"
-  },
-  "keywords": [],
   "author": {
     "name": "Douglas Pacor",
     "email": "douglas@epicquestti.com.br"
   },
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^22.10.7",
-    "cannon-es": "^0.20.0",
-    "electron-squirrel-startup": "^1.0.1",
-    "phaser": "^3.87.0",
-    "three": "^0.172.0"
+    "@types/node": "22.13.4",
+    "cannon-es": "0.20.0",
+    "electron-squirrel-startup": "1.0.1",
+    "three": "0.173.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "7.6.1",
+    "@electron-forge/maker-deb": "7.6.1",
+    "@electron-forge/maker-rpm": "7.6.1",
+    "@electron-forge/maker-squirrel": "7.6.1",
+    "@electron-forge/maker-zip": "7.6.1",
+    "@electron-forge/plugin-auto-unpack-natives": "7.6.1",
+    "@electron-forge/plugin-fuses": "7.6.1",
+    "@electron-forge/plugin-vite": "7.6.1",
+    "@electron/fuses": "1.8.0",
+    "@types/electron-squirrel-startup": "1.0.2",
+    "@types/three": "0.173.0",
+    "@typescript-eslint/eslint-plugin": "8.24.1",
+    "@typescript-eslint/parser": "8.24.1",
+    "electron": "34.2.0",
+    "eslint": "9.20.1",
+    "eslint-plugin-import": "2.31.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.7.3",
+    "vite": "6.1.0"
   }
 }

@@ -1,22 +1,15 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
-
-interface ExtendedBody extends CANNON.Body {
-  data?: { type: string };
-}
+import { ECBody } from "./type";
 
 export default class Terrain {
-  private body: ExtendedBody;
+  private body: ECBody;
   private shape: CANNON.Box;
   private mesh: THREE.Mesh;
   private geometry: THREE.BoxGeometry;
   private material: THREE.MeshStandardMaterial;
 
-  constructor(params: {
-    scene: THREE.Scene;
-    world: CANNON.World;
-    name?: string;
-  }) {
+  constructor(params: { scene: THREE.Scene; world: CANNON.World }) {
     this.shape = new CANNON.Box(new CANNON.Vec3(80, 0.3, 80));
     this.body = new CANNON.Body({
       mass: 0,
@@ -28,6 +21,7 @@ export default class Terrain {
     params.world.addBody(this.body);
 
     this.geometry = new THREE.BoxGeometry(160, 0.6, 160);
+
     this.material = new THREE.MeshStandardMaterial({ color: 0x996600 });
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.receiveShadow = true;
