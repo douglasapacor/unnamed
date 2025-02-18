@@ -28,7 +28,7 @@ export default class Player extends Entity {
     });
 
     this.aggro = new Collider(
-      { name: "aggro", radius: 5, debug: true, collisionResponse: false },
+      { name: "aggro", radius: 5, debug: false, collisionResponse: false },
       params.scene,
       params.world
     );
@@ -36,13 +36,17 @@ export default class Player extends Entity {
     this.textCanvas = document.createElement("canvas");
     this.textCanvas.width = 356;
     this.textCanvas.height = 128;
+
     const ctx = this.textCanvas.getContext("2d")!;
+
     ctx.font = "Bold 24px Arial";
     ctx.fillStyle = "white";
     ctx.fillText("Jogador", 40, 64);
 
     this.textTexture = new THREE.CanvasTexture(this.textCanvas);
+
     const spriteMaterial = new THREE.SpriteMaterial({ map: this.textTexture });
+
     this.textSprite = new THREE.Sprite(spriteMaterial);
     this.textSprite.scale.set(2, 1, 1);
     params.scene.add(this.textSprite);

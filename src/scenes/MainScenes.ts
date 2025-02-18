@@ -4,11 +4,13 @@ import { MODELS } from "../config/directories";
 import Core from "../utils/Core";
 import Player from "../utils/Player";
 import Terrain from "../utils/Terrain";
+import EnemyModel from "../artifacts/EnemyModel";
 
 export default class MainScenes extends Scene {
   private core: Core;
   private terrain: Terrain;
   private player: Player;
+  private actors: Array<any>;
 
   constructor() {
     super("MainScene");
@@ -23,12 +25,21 @@ export default class MainScenes extends Scene {
       path: MODELS.dummy,
       scene: this.core.scene,
       world: this.core.physicsController.world,
-      position: new Vec3(0, 1, 0),
+      position: new Vec3(0, 0, 0),
     });
+
+    this.actors = [
+      new EnemyModel({
+        scene: this.core.scene,
+        world: this.core.physicsController.world,
+      }),
+    ];
   }
 
   preload(): void {
     this.player.preload();
+
+    if (this.actors.length > 0) this.actors.forEach((actor) => actor.preload());
   }
 
   create() {
@@ -84,7 +95,7 @@ export default class MainScenes extends Scene {
         )} | z: ${this.player.collisionBody.position.z.toFixed(2)}`
       );
 
-    // if (this.actors.length > 0)
-    //   this.actors.forEach((actor) => actor.update(delta));
+    if (this.actors.length > 0)
+      this.actors.forEach((actor) => actor.update(delta));
   }
 }
