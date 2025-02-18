@@ -25,8 +25,8 @@ export default class Game {
   }
 
   async loop() {
-    console.log("Loop rodando...");
     requestAnimationFrame(this.loop.bind(this));
+
     if (this.state !== GameState.RUNNING) return;
 
     const delta = this.clock.getDelta();
