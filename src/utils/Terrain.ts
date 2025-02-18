@@ -23,13 +23,12 @@ export default class Terrain {
       shape: this.shape,
       position: new CANNON.Vec3(0, -5, 0),
     });
-
     this.body.data = { type: "ground" };
+
     params.world.addBody(this.body);
 
     this.geometry = new THREE.BoxGeometry(160, 0.6, 160);
     this.material = new THREE.MeshStandardMaterial({ color: 0x996600 });
-
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.receiveShadow = true;
 

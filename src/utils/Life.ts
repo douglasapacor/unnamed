@@ -1,26 +1,38 @@
 export default class Life {
-  private total: number;
-  private current: number;
-  public percent: string;
+  private _total: number;
+  private _current: number;
+  private _percent: string;
 
-  constructor(total: number, current: number) {
-    this.total = total;
-    this.current = current;
+  constructor(total: number = 100, current: number = 100) {
+    this._total = total;
+    this._current = current;
 
     this.calculate();
+  }
+
+  get total(): number {
+    return this._total;
+  }
+
+  get current(): number {
+    return this._current;
+  }
+
+  get percent(): string {
+    return this._percent;
   }
 
   private calculate() {
-    this.percent = `${((this.current / this.total) * 100).toFixed(2)}`;
+    this._percent = `${((this._current / this._total) * 100).toFixed(2)}%`;
   }
 
-  damage(value: number) {
-    this.current -= value;
+  public augment(value: number) {
+    this._current += value;
     this.calculate();
   }
 
-  heal(value: number) {
-    this.current += value;
+  public withdraw(value: number) {
+    this._current -= value;
     this.calculate();
   }
 }

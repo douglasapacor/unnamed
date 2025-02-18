@@ -1,18 +1,7 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-
-interface movement {
-  left: boolean;
-  right: boolean;
-  up: boolean;
-  down: boolean;
-  idle: boolean;
-}
-
-interface ECANNONBody extends CANNON.Body {
-  name?: any;
-}
+import { ECANNONBody, movement } from "./types";
 
 export default class Entity {
   public model: THREE.Object3D;
@@ -49,7 +38,7 @@ export default class Entity {
     this.mSize = new THREE.Vector3();
     this.loader = new GLTFLoader();
 
-    if (this.params.position) {
+    if (this.params.position)
       this.model.position.copy(
         new THREE.Vector3(
           this.params.position.x,
@@ -57,7 +46,6 @@ export default class Entity {
           this.params.position.z
         )
       );
-    }
 
     this.loader.load(
       this.params.path,
@@ -66,7 +54,6 @@ export default class Entity {
         this.model = gltf.scene;
 
         new THREE.Box3().setFromObject(this.model).getSize(this.mSize);
-
         this.params.scene.add(this.model);
 
         this.mixer = new THREE.AnimationMixer(this.model);
@@ -83,9 +70,7 @@ export default class Entity {
           position: this.params.position,
           velocity: new CANNON.Vec3(0, 0, 0),
         });
-
         this.collisionBody.name = this.params.name;
-
         this.collisionBody.fixedRotation = true;
         this.collisionBody.angularDamping = 0.9;
         this.collisionBody.updateMassProperties();
@@ -107,6 +92,8 @@ export default class Entity {
     );
   }
 
+  public preload() {}
+  public create() {}
   public update(delta: number): void {
     if (this.mixer) this.mixer.update(delta * delta * 0.0001);
 

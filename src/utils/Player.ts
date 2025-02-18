@@ -1,11 +1,11 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import { cameraEvents } from "../helpers/events";
-import { Attributes } from "./Attributes";
 import Entity from "./Entity";
+import { Features } from "./Features";
 
 export default class Player extends Entity {
-  public attributes: Attributes = new Attributes();
+  public features: Features = new Features();
 
   constructor(params: {
     scene: THREE.Scene;
@@ -29,7 +29,6 @@ export default class Player extends Entity {
     if (this.movement.right) this.playAnimation("running_001");
     if (this.movement.up) this.playAnimation("running_001");
     if (this.movement.down) this.playAnimation("running_001");
-
     if (this.movement.idle) this.playAnimation("idle_001");
 
     if (this.loaded) {

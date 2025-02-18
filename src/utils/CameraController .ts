@@ -59,4 +59,17 @@ export default class CameraController {
   public denyZoom(): void {
     this.canZoom = false;
   }
+
+  public toScreenPosition(position: THREE.Vector3) {
+    const vector = new THREE.Vector3(position.x, position.y, position.z);
+    vector.project(this.camera);
+
+    const widthHalf = window.innerWidth / 2;
+    const heightHalf = window.innerHeight / 2;
+
+    return {
+      x: vector.x * widthHalf + widthHalf,
+      y: -(vector.y * heightHalf) + heightHalf,
+    };
+  }
 }

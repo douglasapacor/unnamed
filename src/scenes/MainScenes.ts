@@ -1,80 +1,83 @@
-import * as CANNON from "cannon-es";
+import { Vec3 } from "cannon-es";
 import { Scene } from "phaser";
+import { Vector3 } from "three";
 import { MODELS } from "../config/directories";
 import Core from "../utils/Core";
-import Enemy from "../utils/Enemy";
 import Player from "../utils/Player";
 import Terrain from "../utils/Terrain";
 
 export default class MainScenes extends Scene {
-  private core: Core = new Core();
+  private core: Core;
   private terrain: Terrain;
   private player: Player;
-  private actors: any[] = [];
+  private playerText: Phaser.GameObjects.Text;
 
   constructor() {
     super("MainScene");
-  }
-
-  preload(): void {
-    this.terrain = new Terrain({
-      scene: this.core.scene,
-      world: this.core.physicsController.world,
-    });
+    this.core = new Core();
 
     this.player = new Player({
       path: MODELS.dummy,
       scene: this.core.scene,
       world: this.core.physicsController.world,
-      position: new CANNON.Vec3(14, 1, 14),
+      position: new Vec3(0, 0, 0),
     });
+  }
 
-    this.actors.push(
-      new Enemy({
-        path: MODELS.enemy,
-        scene: this.core.scene,
-        world: this.core.physicsController.world,
-        position: new CANNON.Vec3(2, 3, 2),
-        name: "enemy",
-      })
-    );
+  preload(): void {
+    this.player.preload();
   }
 
   create() {
-    let w = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    let a = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    let s = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    let d = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.playerText = this.add
+      .text(0, 0, "Jogador", {
+        fontSize: "16px",
+        color: "#ffffff",
+        backgroundColor: "#000000",
+        padding: { x: 5, y: 2 },
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(1000);
 
-    // W key
-    w.on("down", () => {
-      this.player.walkUpOn(this.player.attributes.speed);
+    this.terrain = new Terrain({
+      scene: this.core.scene,
+      world: this.core.physicsController.world,
     });
-    w.on("up", () => {
+
+    let wKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    let aKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    let sKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    let dKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+
+    // W
+    wKey.on("down", () => {
+      this.player.walkUpOn(this.player.features.attrtibutes.movespeed);
+    });
+    wKey.on("up", () => {
       this.player.walkUpOff();
     });
 
-    // A key
-    a.on("down", () => {
-      this.player.walkLeftOn(this.player.attributes.speed);
+    // A
+    aKey.on("down", () => {
+      this.player.walkLeftOn(this.player.features.attrtibutes.movespeed);
     });
-    a.on("up", () => {
+    aKey.on("up", () => {
       this.player.walkLeftOff();
     });
 
-    // S key
-    s.on("down", () => {
-      this.player.walkDownOn(this.player.attributes.speed);
+    // S
+    sKey.on("down", () => {
+      this.player.walkDownOn(this.player.features.attrtibutes.movespeed);
     });
-    s.on("up", () => {
+    sKey.on("up", () => {
       this.player.walkDownOff();
     });
 
-    // D key
-    d.on("down", () => {
-      this.player.walkRightOn(this.player.attributes.speed);
+    // D
+    dKey.on("down", () => {
+      this.player.walkRightOn(this.player.features.attrtibutes.movespeed);
     });
-    d.on("up", () => {
+    dKey.on("up", () => {
       this.player.walkRightOff();
     });
   }
@@ -84,7 +87,19 @@ export default class MainScenes extends Scene {
     this.terrain.update(delta);
     this.player.update(delta);
 
-    if (this.actors.length > 0)
-      this.actors.forEach((actor) => actor.update(delta));
+    if (this.player.collisionBody) {
+      const playerScreenPos = this.core.cameraController.toScreenPosition(
+        new Vector3(
+          this.player.collisionBody.position.x,
+          this.player.collisionBody.position.y,
+          this.player.collisionBody.position.z
+        )
+      );
+
+      this.playerText.setPosition(playerScreenPos.x, playerScreenPos.y - 50);
+    }
+
+    // if (this.actors.length > 0)
+    //   this.actors.forEach((actor) => actor.update(delta));
   }
 }

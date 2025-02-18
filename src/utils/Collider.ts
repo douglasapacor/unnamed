@@ -6,9 +6,9 @@ interface CannonBodyExtended extends CANNON.Body {
 
 export default class Collider {
   public collider: CannonBodyExtended;
-  private in = new Set<CannonBodyExtended>();
   private radius: number;
   private mesh: THREE.Mesh;
+  private in = new Set<CannonBodyExtended>();
   public onCollide?: (event: any) => void;
 
   constructor(

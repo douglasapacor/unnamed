@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import CameraController from "./CameraController ";
-import DebugRenderer from "./DebugRenderer";
 import LightController from "./LightController";
 import PhysicController from "./PhysicController";
 
@@ -11,9 +10,8 @@ export default class Core {
   public physicsController: PhysicController;
   private renderer: THREE.WebGLRenderer;
   private canvas: HTMLCanvasElement;
-  private debugRenderer: DebugRenderer;
 
-  constructor(private debug?: boolean) {
+  constructor() {
     this.canvas = document.createElement("canvas");
     this.canvas.id = "3D_layer";
     this.canvas.style.position = "absolute";
@@ -28,28 +26,17 @@ export default class Core {
     this.physicsController = new PhysicController();
 
     this.scene = new THREE.Scene();
-
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       alpha: true,
     });
-
-    if (this.debug) {
-      this.debugRenderer = new DebugRenderer(
-        this.scene,
-        this.physicsController.world
-      );
-    }
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.scene.add(this.lightController.light);
   }
 
   update(delta: number): void {
-    if (this.debug) this.debugRenderer.update();
-
     this.physicsController.update(delta);
-
     this.renderer.state.reset();
     this.renderer.render(this.scene, this.cameraController.camera);
   }
