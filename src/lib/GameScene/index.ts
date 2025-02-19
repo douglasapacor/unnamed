@@ -32,6 +32,8 @@ export default class GameScene {
   }
 
   public preload() {}
+
   public create() {}
+
   public update(delta: number) {}
 }
