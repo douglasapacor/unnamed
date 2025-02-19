@@ -24,34 +24,6 @@ export default class Game {
     this.loop();
   }
 
-  async loop() {
-    requestAnimationFrame(this.loop.bind(this));
-
-    if (this.state !== GameState.RUNNING) return;
-
-    const delta = this.clock.getDelta();
-
-    this.physic.update(delta);
-    this.renderer.state.reset();
-    this.renderer.render(this.scene, this.camera.camera);
-
-    if (this.socket) {
-      switch (this.socket.state) {
-        case SceneState.PRELOAD:
-          await this.socket.tunnelPreload();
-          break;
-
-        case SceneState.CREATE:
-          await this.socket.tunnelCreate();
-          break;
-
-        case SceneState.UPDATE:
-          this.socket.tunnelUpdate(delta);
-          break;
-      }
-    }
-  }
-
   private build(): void {
     if (this.state !== GameState.BUILD) return;
 
@@ -78,12 +50,46 @@ export default class Game {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
+      logarithmicDepthBuffer: true,
     });
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.scene.add(this.light.light);
+
     this.state = GameState.RUNNING;
+  }
+
+  async loop() {
+    requestAnimationFrame(this.loop.bind(this));
+
+    if (this.state !== GameState.RUNNING) return;
+
+    const delta = this.clock.getDelta();
+
+    this.physic.update(delta);
+    this.renderer.state.reset();
+    this.renderer.render(this.scene, this.camera.camera);
+
+    if (this.socket) {
+      switch (this.socket.state) {
+        case SceneState.PRELOAD:
+          await this.socket.tunnelPreload();
+          break;
+
+        case SceneState.CREATE:
+          await this.socket.tunnelCreate();
+          break;
+
+        case SceneState.UPDATE:
+          this.socket.tunnelUpdate(delta);
+          break;
+      }
+    }
   }
 }

@@ -11,3 +11,9 @@ export interface moves {
   down: boolean;
   idle: boolean;
 }
+
+export enum modelState {
+  STTOPED,
+  LOADING,
+  FINISHED,
+}

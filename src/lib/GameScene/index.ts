@@ -1,27 +1,36 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
-import { SceneState } from "./type";
+import { actor, SceneState } from "./type";
 
 export default class GameScene {
   private _state: SceneState = SceneState.PRELOAD;
+  private _actors: Array<actor> = [];
 
   constructor(protected scene: THREE.Scene, protected world: CANNON.World) {}
 
-  public get state(): SceneState {
+  get state(): SceneState {
     return this._state;
   }
 
-  public async tunnelPreload(): Promise<void> {
+  async tunnelPreload(): Promise<void> {
     if (this._state !== SceneState.PRELOAD) return;
 
     this.preload();
+    this._actors.forEach((actor) => {
+      if (actor.preload) actor.preload();
+    });
+
     this._state = SceneState.CREATE;
   }
 
-  public async tunnelCreate(): Promise<void> {
+  async tunnelCreate(): Promise<void> {
     if (this._state !== SceneState.CREATE) return;
 
     this.create();
+    this._actors.forEach((actor) => {
+      if (actor.create) actor.create();
+    });
+
     this._state = SceneState.UPDATE;
   }
 
@@ -29,11 +38,18 @@ export default class GameScene {
     if (this._state !== SceneState.UPDATE) return;
 
     this.update(delta);
+    this._actors.forEach((actor) => {
+      if (actor.update) actor.update(delta);
+    });
   }
 
-  public preload() {}
+  preload() {}
 
-  public create() {}
+  create() {}
 
-  public update(delta: number) {}
+  update(delta: number) {}
+
+  addActor(actor: actor): void {
+    this._actors.push(actor);
+  }
 }

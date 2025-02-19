@@ -1,8 +1,8 @@
-import { AnimationAction, AnimationMixer, Object3D, Vector3 } from "three";
-import { ECBody, moves } from "./type";
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
+import { AnimationAction, AnimationMixer, Object3D, Vector3 } from "three";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { ECBody, moves } from "./type";
 
 export default class Entity {
   private _model: Object3D;
@@ -13,10 +13,16 @@ export default class Entity {
   private _action: AnimationAction | null = null;
   private _body: ECBody;
   private _loader: GLTFLoader;
-  private _loaded: boolean = false;
   private _lastRotationY: number = 0;
   private _movespeed: number = 0;
   private _moves: moves;
+
+  private _isEntityReady: boolean = false;
+  private _isActionsReady: boolean = false;
+  private _isModelReady: boolean = false;
+
+  private _totalActions: number = 0;
+  private _actionsLoaded: number = 0;
 
   constructor(
     protected params: {
@@ -34,33 +40,41 @@ export default class Entity {
       right: false,
       idle: true,
     };
+    this._model = new THREE.Object3D();
+    this._size = new THREE.Vector3();
+    this._loader = new GLTFLoader();
   }
 
   public get body(): ECBody {
     return this._body;
   }
 
-  public get ready(): boolean {
-    return this._loaded;
+  public get moves(): moves {
+    return this._moves;
+  }
+
+  public get actions(): Record<string, AnimationAction> {
+    return this._actions;
+  }
+
+  public get isReady(): boolean {
+    return this._isEntityReady;
   }
 
   public preload() {
-    this._model = new THREE.Object3D();
-    this._size = new THREE.Vector3();
-    this._loader = new GLTFLoader();
-
-    if (this.params.position) this._model.position.copy(this.params.position);
-
     this._loader.load(
       this._path,
       (gltf: GLTF) => {
+        this._totalActions = gltf.animations.length;
         this._model = gltf.scene;
+        this._model.matrixAutoUpdate = true;
 
         new THREE.Box3().setFromObject(this._model).getSize(this._size);
 
         this.params.scene.add(this._model);
 
         this._mixer = new THREE.AnimationMixer(this._model);
+
         this._body = new CANNON.Body({
           mass: 1,
           shape: new CANNON.Box(
@@ -70,11 +84,12 @@ export default class Entity {
               this._size.z * 0.5
             )
           ),
-          position: this.params.position,
+          position: new CANNON.Vec3(0, 0, 0),
           velocity: new CANNON.Vec3(0, 0, 0),
         });
 
         this._body.name = this.params.name;
+
         this._body.fixedRotation = true;
         this._body.angularDamping = 0.9;
         this._body.updateMassProperties();
@@ -83,10 +98,17 @@ export default class Entity {
 
         gltf.animations.forEach((clip) => {
           this._actions[clip.name] = this._mixer.clipAction(clip);
+          this._actionsLoaded += 1;
+
+          if (this._actionsLoaded >= this._totalActions) {
+            this._isActionsReady = true;
+          }
         });
       },
       (event) => {
-        if (event.loaded >= event.total) this._loaded = true;
+        if (event.loaded >= event.total) {
+          this._isModelReady = true;
+        }
       },
       (err: unknown) => {
         console.error("Erro ao carregar modelo:", err);
@@ -95,12 +117,16 @@ export default class Entity {
   }
 
   public update(delta: number) {
-    if (this._mixer) this._mixer.update(delta * delta * 0.0001);
+    if (this._isEntityReady) {
+      if (this._mixer) this._mixer.update(delta);
 
-    if (this._loaded) {
-      this.rotation();
       this.align();
+      this.rotation();
       this.move();
+    } else {
+      if (this._isActionsReady && this._isModelReady) {
+        this._isEntityReady = true;
+      }
     }
   }
 
@@ -137,7 +163,9 @@ export default class Entity {
       );
 
       this._lastRotationY = this._model.rotation.y;
-    } else this._model.rotation.y = this._lastRotationY;
+    } else {
+      this._model.rotation.y = this._lastRotationY;
+    }
   }
 
   private move(): void {
@@ -180,7 +208,7 @@ export default class Entity {
   }
 
   public playAnimation(name: string, timeScale?: number): void {
-    if (!this._loaded) return;
+    if (!this._isEntityReady) return;
 
     if (!this._actions[name]) {
       console.warn(`A animação "${name}" não foi encontrada!`);
@@ -188,11 +216,12 @@ export default class Entity {
     }
 
     if (this._action === this._actions[name]) return;
+
     if (this._action) this._action.fadeOut(0.7);
 
     this._action = this._actions[name];
     this._action.reset().fadeIn(0.7).play();
-    this._action.timeScale = timeScale ? timeScale : 0.7;
+    this._action.timeScale = timeScale ? timeScale : 1;
   }
 
   public walkLeftOn(speed: number): void {

@@ -10,7 +10,7 @@ export interface collider {
   radius: number;
   scene: THREE.Scene;
   world: CANNON.World;
-  collisionResponse?: boolean;
+  collisionResponse: boolean;
   debug?: boolean;
   ignore?: string[];
 }

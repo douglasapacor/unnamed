@@ -26,10 +26,8 @@ export default class Camera {
       name: "camera_focus",
       caller: this,
       callback: (position: THREE.Vector3) => {
-        this.camera.position.set(
-          position.x + 10,
-          position.y + 10,
-          position.z + 10
+        this.camera.position.copy(
+          new THREE.Vector3(position.x + 10, position.y + 10, position.z + 10)
         );
         this.camera.lookAt(position);
       },
