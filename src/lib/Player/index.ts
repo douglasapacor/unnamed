@@ -27,6 +27,7 @@ export default class Player extends Entity {
 
   public update(delta: number) {
     super.update(delta);
+
     if (!this.isReady) return;
 
     this.aggro.update();
