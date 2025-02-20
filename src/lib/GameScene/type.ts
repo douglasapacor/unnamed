@@ -3,9 +3,3 @@ export enum SceneState {
   CREATE,
   UPDATE,
 }
-
-export type actor = Partial<{
-  preload: () => void;
-  create: () => void;
-  update: (delta: number) => void;
-}>;

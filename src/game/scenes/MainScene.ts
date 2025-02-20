@@ -1,9 +1,7 @@
-import { Vec3 } from "cannon-es";
 import GameScene from "../../lib/GameScene";
 import { InputController } from "../../lib/InputController";
 import Player from "../../lib/Player";
 import Terrain from "../../lib/Terrain";
-import Exemple001 from "../actors/exemple_01";
 
 export default class MainScene extends GameScene {
   private terrain: Terrain;
