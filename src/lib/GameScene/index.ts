@@ -27,7 +27,7 @@ export default class GameScene {
     this._state = SceneState.UPDATE;
   }
 
-  public async tunnelUpdate(delta: number): Promise<void> {
+  async tunnelUpdate(delta: number): Promise<void> {
     if (this._state !== SceneState.UPDATE) return;
 
     this.update(delta);

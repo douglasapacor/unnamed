@@ -16,11 +16,9 @@ export default class Entity {
   private _lastRotationY: number = 0;
   private _movespeed: number = 0;
   private _moves: moves;
-
   private _isEntityReady: boolean = false;
   private _isActionsReady: boolean = false;
   private _isModelReady: boolean = false;
-
   private _totalActions: number = 0;
   private _actionsLoaded: number = 0;
 

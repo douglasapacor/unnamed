@@ -42,6 +42,21 @@ export default class Actor {
     this._name = params.name;
     this._modelname = params.modelname;
     this._path = `/src/game/assets/models/${this._modelname}.glb`;
+    this._model = new Object3D();
+    this._size = new Vector3();
+    this._loader = new GLTFLoader();
+  }
+
+  public get body(): ECBody {
+    return this._body;
+  }
+
+  public get actions(): Record<string, AnimationAction> {
+    return this._actions;
+  }
+
+  public get isReady(): boolean {
+    return this._isActorReady;
   }
 
   public preload() {
