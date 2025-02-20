@@ -19,6 +19,7 @@ export class Collider {
       shape: new CANNON.Sphere(this.radius),
       type: CANNON.Body.KINEMATIC,
       collisionResponse: this.params.collisionResponse,
+      position: this.params.position,
     });
 
     this.collider.name = this.params.name;
@@ -44,7 +45,10 @@ export class Collider {
     if (this.params.debug) {
       this.mesh = new THREE.Mesh(
         new THREE.SphereGeometry(this.params.radius),
-        new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true })
+        new THREE.MeshBasicMaterial({
+          color: this.params.color ? this.params.color : 0xffffff,
+          wireframe: true,
+        })
       );
 
       this.mesh.position.copy(this.collider.position);
@@ -62,7 +66,7 @@ export class Collider {
     this.in.forEach((body) => {
       if (
         this.collider.position.distanceTo(body.position) >
-        this.radius + 0.3
+        this.radius + 0.1
       ) {
         this.in.delete(body);
       }

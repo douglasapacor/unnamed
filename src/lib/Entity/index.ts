@@ -25,12 +25,13 @@ export default class Entity {
   constructor(
     protected params: {
       name: string;
+      model: string;
       scene: THREE.Scene;
       world: CANNON.World;
       position?: CANNON.Vec3;
     }
   ) {
-    this._path = `/src/game/assets/models/${params.name}.glb`;
+    this._path = `/src/game/assets/models/${params.model}.glb`;
     this._moves = {
       up: false,
       down: false,
@@ -82,7 +83,7 @@ export default class Entity {
               this._size.z * 0.5
             )
           ),
-          position: new CANNON.Vec3(0, 0, 0),
+          position: this.params.position,
           velocity: new CANNON.Vec3(0, 0, 0),
         });
 

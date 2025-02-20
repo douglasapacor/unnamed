@@ -1,7 +1,7 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
-import { SceneState } from "./type";
 import Actor from "../Actor";
+import { SceneState } from "./type";
 
 export default class GameScene {
   private _state: SceneState = SceneState.PRELOAD;
@@ -35,11 +35,14 @@ export default class GameScene {
   }
 
   preload() {}
+
   create() {}
+
   update(delta: number) {}
 
   addActor(actor: Actor): void {
     actor.preload();
+
     this._actors.push(actor);
   }
 }

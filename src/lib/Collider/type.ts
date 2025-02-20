@@ -13,4 +13,6 @@ export interface collider {
   collisionResponse: boolean;
   debug?: boolean;
   ignore?: string[];
+  position?: CANNON.Vec3;
+  color?: THREE.ColorRepresentation;
 }

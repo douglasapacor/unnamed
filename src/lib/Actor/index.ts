@@ -51,6 +51,10 @@ export default class Actor {
     return this._body;
   }
 
+  public get model(): Object3D {
+    return this._model;
+  }
+
   public get actions(): Record<string, AnimationAction> {
     return this._actions;
   }
@@ -94,9 +98,8 @@ export default class Actor {
           this._actions[clip.name] = this._mixer.clipAction(clip);
           this._actionsLoaded += 1;
 
-          if (this._actionsLoaded >= this._totalActions) {
+          if (this._actionsLoaded >= this._totalActions)
             this._isActionsReady = true;
-          }
         });
       },
       (event: ProgressEvent<EventTarget>) => {
