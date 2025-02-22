@@ -1,12 +1,12 @@
 import { Vector3 } from "three";
-import { cameraEvents } from "../../helpers/events";
+import { cameraEvents } from "../../../../unnamed/src/helpers/events";
 import Attributes from "../Attributes";
 import Entity from "../Entity";
 import Life from "../Life";
 
 export default class Player extends Entity {
-  public life: Life;
-  public attributes: Attributes;
+  public life!: Life;
+  public attributes!: Attributes;
 
   public preload() {
     super.preload();

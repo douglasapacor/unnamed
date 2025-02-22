@@ -9,7 +9,7 @@ import {
   Scene,
   Vector3,
 } from "three";
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ECBody } from "./type";
 
 export default class Actor {
@@ -18,8 +18,8 @@ export default class Actor {
   private _model: Object3D;
   private _path: string;
   private _size: Vector3;
-  private _mixer: AnimationMixer;
-  private _body: ECBody;
+  private _mixer!: AnimationMixer;
+  private _body!: ECBody;
   private _actions: Record<string, AnimationAction> = {};
   private _action: AnimationAction | null = null;
   private _loader: GLTFLoader;
@@ -41,7 +41,7 @@ export default class Actor {
   ) {
     this._name = params.name;
     this._modelname = params.modelname;
-    this._path = `/src/game/assets/models/${this._modelname}.glb`;
+    this._path = `/assets/models/${this._modelname}.glb`;
     this._model = new Object3D();
     this._size = new Vector3();
     this._loader = new GLTFLoader();

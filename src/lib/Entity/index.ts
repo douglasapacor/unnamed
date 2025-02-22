@@ -1,17 +1,17 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import { AnimationAction, AnimationMixer, Object3D, Vector3 } from "three";
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ECBody, moves } from "./type";
 
 export default class Entity {
   private _model: Object3D;
   private _path: string;
   private _size: Vector3;
-  private _mixer: AnimationMixer;
+  private _mixer!: AnimationMixer;
   private _actions: Record<string, AnimationAction> = {};
   private _action: AnimationAction | null = null;
-  private _body: ECBody;
+  private _body!: ECBody;
   private _loader: GLTFLoader;
   private _lastRotationY: number = 0;
   private _movespeed: number = 0;
@@ -31,7 +31,7 @@ export default class Entity {
       position?: CANNON.Vec3;
     }
   ) {
-    this._path = `/src/game/assets/models/${params.model}.glb`;
+    this._path = `/assets/models/${params.model}.glb`;
     this._moves = {
       up: false,
       down: false,

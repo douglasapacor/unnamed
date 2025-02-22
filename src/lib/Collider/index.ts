@@ -3,9 +3,9 @@ import * as THREE from "three";
 import { collider, ECBody } from "./type";
 
 export class Collider {
-  public collider: ECBody;
-  private radius: number;
-  private mesh: THREE.Mesh;
+  public collider!: ECBody;
+  private radius!: number;
+  private mesh!: THREE.Mesh;
   private in = new Set<ECBody>();
   public onCollide?: (event: any) => void;
 

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { cameraEvents } from "../../helpers/events";
+import { cameraEvents } from "../../../../unnamed/src/helpers/events";
 
 export default class Camera {
   public camera: THREE.OrthographicCamera;
