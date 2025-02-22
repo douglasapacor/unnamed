@@ -1,8 +1,8 @@
 require("esbuild")
   .build({
-    entryPoints: ["src/root.ts"],
+    entryPoints: ["src/index.ts"],
     bundle: true,
-    outfile: "resources/js/root.js",
+    outfile: "resources/js/index.js",
     platform: "browser",
     target: "esnext",
     external: [],

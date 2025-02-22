@@ -1,4 +1,4 @@
 export enum MODELS {
-  enemy = "/src/assets/models/enemy.glb",
-  dummy = "/src/assets/models/dummy.glb",
+  enemy = "/assets/models/enemy.glb",
+  dummy = "/assets/models/dummy.glb",
 }

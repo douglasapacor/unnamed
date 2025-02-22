@@ -6,13 +6,13 @@ import Physic from "../Physic";
 import { GameState, SceneState } from "./type";
 
 export default class Game {
-  private scene: THREE.Scene;
-  private light: Light;
-  private camera: Camera;
-  private physic: Physic;
-  private renderer: THREE.WebGLRenderer;
-  private canvas: HTMLCanvasElement;
-  private clock: THREE.Clock;
+  private scene!: THREE.Scene;
+  private light!: Light;
+  private camera!: Camera;
+  private physic!: Physic;
+  private renderer!: THREE.WebGLRenderer;
+  private canvas!: HTMLCanvasElement;
+  private clock!: THREE.Clock;
   private socket?: GameScene;
   private gameSceneList: (typeof GameScene)[];
   private state: GameState = GameState.BUILD;

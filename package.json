@@ -4,6 +4,7 @@
   "description": "néh",
   "main": "index.js",
   "scripts": {
+    "build:neu": "neu build",
     "build": "node build.js",
     "start": "neu run",
     "all": "npm run build && npm start"
@@ -11,12 +12,12 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@types/three": "^0.173.0",
-    "cannon-es": "^0.20.0",
+    "@types/three": "0.173.0",
+    "cannon-es": "0.20.0",
     "three": "0.173.0"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
+    "esbuild": "0.25.0",
     "typescript": "5.7.3"
   }
 }

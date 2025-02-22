@@ -1,16 +1,6 @@
 import Actor from "../lib/Actor";
 import { Collider } from "../lib/Collider";
 
-class Behavior {
-  private nature: "agressive" | "pacifc";
-
-  constructor(nature: "agressive" | "pacifc") {
-    this.nature = nature;
-  }
-
-  onCollide() {}
-}
-
 enum actorMoves {
   PUNCH_001,
   PUNCH_002,
@@ -20,7 +10,6 @@ enum actorMoves {
 
 export class ExempleOne extends Actor {
   private aggro!: Collider;
-  private behavior: Behavior = new Behavior("agressive");
   private moves: actorMoves = actorMoves.IDDLE;
 
   //   private chase(): void {
