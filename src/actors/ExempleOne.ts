@@ -1,5 +1,6 @@
+import { Vector3 } from "three";
 import Actor from "../lib/Actor";
-import { Collider } from "../lib/Collider";
+import { Vec3 } from "cannon-es";
 
 enum actorMoves {
   PUNCH_001,
@@ -9,74 +10,36 @@ enum actorMoves {
 }
 
 export class ExempleOne extends Actor {
-  private aggro!: Collider;
-  private moves: actorMoves = actorMoves.IDDLE;
-
-  //   private chase(): void {
-  //     if (!this.isReady) return;
-  //     if (!this.target) return;
-
-  //     const thisPosition = new Vector3(
-  //       this.body.position.x,
-  //       this.body.position.y,
-  //       this.body.position.z
-  //     );
-
-  //     const targetPos = new Vector3(this.target.x, this.target.y, this.target.z);
-
-  //     const direction = new Vector3()
-  //       .subVectors(targetPos, thisPosition)
-  //       .setY(0)
-  //       .normalize();
-
-  //     this.body.velocity.set(
-  //       direction.x * 26,
-  //       this.body.velocity.y,
-  //       direction.z * 26
-  //     );
-
-  //     const targetRotation = Math.atan2(direction.x, direction.z);
-
-  //     this.model.rotation.y = MathUtils.lerp(
-  //       this.model.rotation.y,
-  //       targetRotation,
-  //       1
-  //     );
-  //   }
+  state: actorMoves = actorMoves.IDDLE;
+  detectionRange: number = 5; // Raio de detecção
+  attackRange: number = 1; // Distância para atacar
+  speed: number = 2; // Velocidade de perseguição
+  attackCooldown: number = 0; // Tempo entre ataques (em segundos)
+  maxCooldown: number = 1; // 1 segundo entre ataques
 
   public preload(): void {
     super.preload();
-    this.aggro = new Collider({
-      name: `${this.params.name}-aggro`,
-      collisionResponse: false,
-      radius: 5,
-      scene: this.params.scene,
-      world: this.params.world,
-      ignore: [this.params.name],
-      position: this.params.position,
-      debug: true,
-      color: 0xf44336,
-    });
-    this.aggro.onCollide = this.onCollide;
-    this.aggro.preload();
   }
-
-  private onCollide = (event: any) => {
-    if (event.body.name === "player") {
-    }
-  };
 
   public update(delta: number): void {
     super.update(delta);
+  }
 
-    if (this.isReady) {
-      this.aggro.attach(this.body.position);
-      this.aggro.update();
+  chase(targetPos: Vector3) {
+    const direction = targetPos.clone().sub(this.body.position).normalize();
+    this.body.velocity.set(
+      direction.x * this.speed,
+      this.body.velocity.y, // Mantém a gravidade
+      direction.z * this.speed
+    );
+  }
 
-      if (this.moves === actorMoves.IDDLE) this.playAnimation("idle_001");
-      if (this.moves === actorMoves.PUNCH_001) this.playAnimation("punch_001");
-      if (this.moves === actorMoves.PUNCH_002) this.playAnimation("punch_002");
-      if (this.moves === actorMoves.RUNNING) this.playAnimation("running");
-    }
+  attack(target: any) {
+    console.log("Mob ataca o jogador!");
+    this.attackCooldown = this.maxCooldown; // Reseta o cooldown
+
+    // Impulso físico para simular o "soco"
+    const knockback = new Vec3(2, 0, 2);
+    target.body.applyImpulse(knockback, target.body.position);
   }
 }

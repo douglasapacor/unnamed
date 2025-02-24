@@ -1,4 +1,4 @@
-import { Event } from "../lib/Event";
+import { Event } from "./lib/Event";
 
 const cameraEvents = new Event();
 

@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { cameraEvents } from "../../helpers/all-events";
+import { cameraEvents } from "../../events";
 import Attributes from "../Attributes";
 import Entity from "../Entity";
 import Life from "../Life";
