@@ -9,9 +9,7 @@ export class Collider {
   private in = new Set<ECBody>();
   public onCollide?: (event: any) => void;
 
-  constructor(private params: collider) {}
-
-  preload(): void {
+  constructor(private params: collider) {
     this.radius = this.params.radius;
 
     this.collider = new CANNON.Body({
@@ -52,7 +50,6 @@ export class Collider {
       );
 
       this.mesh.position.copy(this.collider.position);
-
       this.params.scene.add(this.mesh);
     }
   }

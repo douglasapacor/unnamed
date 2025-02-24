@@ -9244,76 +9244,6 @@
       return new _PlaneGeometry(data.width, data.height, data.widthSegments, data.heightSegments);
     }
   };
-  var SphereGeometry = class _SphereGeometry extends BufferGeometry {
-    constructor(radius = 1, widthSegments = 32, heightSegments = 16, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI) {
-      super();
-      this.type = "SphereGeometry";
-      this.parameters = {
-        radius,
-        widthSegments,
-        heightSegments,
-        phiStart,
-        phiLength,
-        thetaStart,
-        thetaLength
-      };
-      widthSegments = Math.max(3, Math.floor(widthSegments));
-      heightSegments = Math.max(2, Math.floor(heightSegments));
-      const thetaEnd = Math.min(thetaStart + thetaLength, Math.PI);
-      let index = 0;
-      const grid = [];
-      const vertex2 = new Vector3();
-      const normal = new Vector3();
-      const indices = [];
-      const vertices = [];
-      const normals = [];
-      const uvs = [];
-      for (let iy = 0; iy <= heightSegments; iy++) {
-        const verticesRow = [];
-        const v = iy / heightSegments;
-        let uOffset = 0;
-        if (iy === 0 && thetaStart === 0) {
-          uOffset = 0.5 / widthSegments;
-        } else if (iy === heightSegments && thetaEnd === Math.PI) {
-          uOffset = -0.5 / widthSegments;
-        }
-        for (let ix = 0; ix <= widthSegments; ix++) {
-          const u = ix / widthSegments;
-          vertex2.x = -radius * Math.cos(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
-          vertex2.y = radius * Math.cos(thetaStart + v * thetaLength);
-          vertex2.z = radius * Math.sin(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
-          vertices.push(vertex2.x, vertex2.y, vertex2.z);
-          normal.copy(vertex2).normalize();
-          normals.push(normal.x, normal.y, normal.z);
-          uvs.push(u + uOffset, 1 - v);
-          verticesRow.push(index++);
-        }
-        grid.push(verticesRow);
-      }
-      for (let iy = 0; iy < heightSegments; iy++) {
-        for (let ix = 0; ix < widthSegments; ix++) {
-          const a2 = grid[iy][ix + 1];
-          const b2 = grid[iy][ix];
-          const c2 = grid[iy + 1][ix];
-          const d = grid[iy + 1][ix + 1];
-          if (iy !== 0 || thetaStart > 0) indices.push(a2, b2, d);
-          if (iy !== heightSegments - 1 || thetaEnd < Math.PI) indices.push(b2, c2, d);
-        }
-      }
-      this.setIndex(indices);
-      this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
-      this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
-      this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
-    }
-    copy(source) {
-      super.copy(source);
-      this.parameters = Object.assign({}, source.parameters);
-      return this;
-    }
-    static fromJSON(data) {
-      return new _SphereGeometry(data.radius, data.widthSegments, data.heightSegments, data.phiStart, data.phiLength, data.thetaStart, data.thetaLength);
-    }
-  };
   var MeshStandardMaterial = class extends Material {
     constructor(parameters) {
       super();
@@ -22597,7 +22527,7 @@ void main() {
     }
   };
 
-  // src/helpers/all-events.ts
+  // src/events.ts
   var cameraEvents = new Event();
 
   // src/lib/Camera/index.ts
@@ -27006,52 +26936,6 @@ void main() {
   var resolveSingleBilateral_vel1 = new Vec3();
   var resolveSingleBilateral_vel2 = new Vec3();
   var resolveSingleBilateral_vel = new Vec3();
-  var Sphere2 = class extends Shape2 {
-    /**
-     * The radius of the sphere.
-     */
-    /**
-     *
-     * @param radius The radius of the sphere, a non-negative number.
-     */
-    constructor(radius) {
-      super({
-        type: Shape2.types.SPHERE
-      });
-      this.radius = radius !== void 0 ? radius : 1;
-      if (this.radius < 0) {
-        throw new Error("The sphere radius cannot be negative.");
-      }
-      this.updateBoundingSphereRadius();
-    }
-    /** calculateLocalInertia */
-    calculateLocalInertia(mass, target) {
-      if (target === void 0) {
-        target = new Vec3();
-      }
-      const I = 2 * mass * this.radius * this.radius / 5;
-      target.x = I;
-      target.y = I;
-      target.z = I;
-      return target;
-    }
-    /** volume */
-    volume() {
-      return 4 * Math.PI * Math.pow(this.radius, 3) / 3;
-    }
-    updateBoundingSphereRadius() {
-      this.boundingSphereRadius = this.radius;
-    }
-    calculateWorldAABB(pos, quat, min, max) {
-      const r = this.radius;
-      const axes = ["x", "y", "z"];
-      for (let i = 0; i < axes.length; i++) {
-        const ax = axes[i];
-        min[ax] = pos[ax] - r;
-        max[ax] = pos[ax] + r;
-      }
-    }
-  };
   var torque = new Vec3();
   var worldAxis = new Vec3();
   var SPHSystem_getNeighbors_dist = new Vec3();
@@ -29490,6 +29374,11 @@ void main() {
         }
       }
     }
+  };
+
+  // src/helpers/random/implementation.ts
+  var generateRandomRangeNumber = (min, max) => {
+    return parseInt(`${Math.random() * (max - min) + min}`);
   };
 
   // node_modules/three/examples/jsm/utils/BufferGeometryUtils.js
@@ -32053,41 +31942,11 @@ void main() {
     constructor(params) {
       this.params = params;
       this._name = params.name;
-      this._modelname = params.modelname;
+      this._modelname = params.model;
       this._path = `/assets/models/${this._modelname}.glb`;
       this._model = new Object3D();
       this._size = new Vector3();
       this._loader = new GLTFLoader();
-    }
-    _name;
-    _modelname;
-    _model;
-    _path;
-    _size;
-    _mixer;
-    _body;
-    _actions = {};
-    _action = null;
-    _loader;
-    _lastRotationY = 0;
-    _isActorReady = false;
-    _isActionsReady = false;
-    _isModelReady = false;
-    _totalActions = 0;
-    _actionsLoaded = 0;
-    get body() {
-      return this._body;
-    }
-    get model() {
-      return this._model;
-    }
-    get actions() {
-      return this._actions;
-    }
-    get isReady() {
-      return this._isActorReady;
-    }
-    preload() {
       this._loader.load(
         this._path,
         (gltf) => {
@@ -32127,15 +31986,41 @@ void main() {
         }
       );
     }
-    update(delta) {
+    _name;
+    _modelname;
+    _model;
+    _path;
+    _size;
+    _mixer;
+    _body;
+    _actions = {};
+    _action = null;
+    _loader;
+    _isActorReady = false;
+    _isActionsReady = false;
+    _isModelReady = false;
+    _totalActions = 0;
+    _actionsLoaded = 0;
+    _lastRotationY = 0;
+    get body() {
+      return this._body;
+    }
+    get model() {
+      return this._model;
+    }
+    get actions() {
+      return this._actions;
+    }
+    get isReady() {
+      return this._isActorReady;
+    }
+    update(player, delta) {
       if (this._isActorReady) {
         if (this._mixer) this._mixer.update(delta);
         this.align();
         this.rotation();
       } else {
-        if (this._isActionsReady && this._isModelReady) {
-          this._isActorReady = true;
-        }
+        if (this._isActionsReady && this._isModelReady) this._isActorReady = true;
       }
     }
     align() {
@@ -32185,134 +32070,68 @@ void main() {
     }
   };
 
-  // src/lib/Collider/index.ts
-  var Collider = class {
-    constructor(params) {
-      this.params = params;
-    }
-    collider;
-    radius;
-    mesh;
-    in = /* @__PURE__ */ new Set();
-    onCollide;
-    preload() {
-      this.radius = this.params.radius;
-      this.collider = new Body({
-        mass: 0,
-        shape: new Sphere2(this.radius),
-        type: Body.KINEMATIC,
-        collisionResponse: this.params.collisionResponse,
-        position: this.params.position
-      });
-      this.collider.name = this.params.name;
-      this.collider.addEventListener("collide", (event) => {
-        if (this.params.ignore) {
-          const find = this.params.ignore.findIndex(
-            (ig) => ig === event.body.name
-          );
-          if (find <= -1) {
-            if (!this.in.has(event.body)) this.in.add(event.body);
-            if (this.onCollide) this.onCollide(event);
-          }
-        } else {
-          if (!this.in.has(event.body)) this.in.add(event.body);
-          if (this.onCollide) this.onCollide(event);
-        }
-      });
-      this.params.world.addBody(this.collider);
-      if (this.params.debug) {
-        this.mesh = new Mesh(
-          new SphereGeometry(this.params.radius),
-          new MeshBasicMaterial({
-            color: this.params.color ? this.params.color : 16777215,
-            wireframe: true
-          })
-        );
-        this.mesh.position.copy(this.collider.position);
-        this.params.scene.add(this.mesh);
-      }
-    }
-    attach(position) {
-      this.collider.position.copy(position);
-      if (this.params.debug) this.mesh.position.copy(position);
-    }
-    update() {
-      this.in.forEach((body) => {
-        if (this.collider.position.distanceTo(body.position) > this.radius + 0.1) {
-          this.in.delete(body);
-        }
-      });
-    }
-  };
-
   // src/actors/ExempleOne.ts
-  var Behavior = class {
-    nature;
-    constructor(nature) {
-      this.nature = nature;
-    }
-    onCollide() {
-    }
-  };
   var ExempleOne = class extends Actor {
-    aggro;
-    behavior = new Behavior("agressive");
-    moves = 3 /* IDDLE */;
-    //   private chase(): void {
-    //     if (!this.isReady) return;
-    //     if (!this.target) return;
-    //     const thisPosition = new Vector3(
-    //       this.body.position.x,
-    //       this.body.position.y,
-    //       this.body.position.z
-    //     );
-    //     const targetPos = new Vector3(this.target.x, this.target.y, this.target.z);
-    //     const direction = new Vector3()
-    //       .subVectors(targetPos, thisPosition)
-    //       .setY(0)
-    //       .normalize();
-    //     this.body.velocity.set(
-    //       direction.x * 26,
-    //       this.body.velocity.y,
-    //       direction.z * 26
-    //     );
-    //     const targetRotation = Math.atan2(direction.x, direction.z);
-    //     this.model.rotation.y = MathUtils.lerp(
-    //       this.model.rotation.y,
-    //       targetRotation,
-    //       1
-    //     );
-    //   }
-    preload() {
-      super.preload();
-      this.aggro = new Collider({
-        name: `${this.params.name}-aggro`,
-        collisionResponse: false,
-        radius: 5,
-        scene: this.params.scene,
-        world: this.params.world,
-        ignore: [this.params.name],
-        position: this.params.position,
-        debug: true,
-        color: 16007990
-      });
-      this.aggro.onCollide = this.onCollide;
-      this.aggro.preload();
+    state = 0 /* IDLE */;
+    detectionRange = 25;
+    attackRange = 1;
+    speed = 20;
+    attackCooldown = 0;
+    maxCooldown = 10;
+    update(player, delta) {
+      super.update(player, delta);
+      if (!player.body) return;
+      if (!this.body) return;
+      const playerPos = new Vector3().copy(player.body.position);
+      const mobPos = new Vector3().copy(this.body.position);
+      const distanceToPlayer = mobPos.distanceTo(playerPos);
+      this.attackCooldown = Math.max(0, this.attackCooldown - delta);
+      switch (this.state) {
+        case 0 /* IDLE */:
+          if (distanceToPlayer <= this.detectionRange) {
+            this.state = 1 /* CHASING */;
+            this.playAnimation("running");
+          } else this.playAnimation("idle_001");
+          break;
+        case 1 /* CHASING */:
+          if (distanceToPlayer <= this.attackRange && this.attackCooldown === 0) {
+            this.state = 2 /* ATTACKING */;
+            this.attack(player);
+            const hit = generateRandomRangeNumber(1, 3);
+            switch (hit) {
+              case 1:
+                this.playAnimation("punch_001");
+                break;
+              case 2:
+                this.playAnimation("punch_002");
+                break;
+            }
+          } else if (distanceToPlayer > this.detectionRange) {
+            this.state = 0 /* IDLE */;
+            this.body.velocity.set(0, this.body.velocity.y, 0);
+            this.playAnimation("idle_001");
+          } else {
+            this.chase(playerPos);
+          }
+          break;
+        case 2 /* ATTACKING */:
+          if (this.attackCooldown === 0) {
+            this.state = 1 /* CHASING */;
+          }
+          break;
+      }
     }
-    onCollide = (event) => {
-      if (event.body.name === "player") {
-      }
-    };
-    update(delta) {
-      super.update(delta);
-      if (this.isReady) {
-        this.aggro.attach(this.body.position);
-        this.aggro.update();
-        if (this.moves === 3 /* IDDLE */) this.playAnimation("idle_001");
-        if (this.moves === 0 /* PUNCH_001 */) this.playAnimation("punch_001");
-        if (this.moves === 1 /* PUNCH_002 */) this.playAnimation("punch_002");
-        if (this.moves === 2 /* RUNNING */) this.playAnimation("running");
-      }
+    chase(targetPosition) {
+      const direction = targetPosition.clone().sub(this.body.position).normalize();
+      this.body.velocity.set(
+        direction.x * this.speed,
+        this.body.velocity.y,
+        direction.z * this.speed
+      );
+    }
+    attack(player) {
+      this.attackCooldown = this.maxCooldown;
+      player.body.applyImpulse(new Vec3(2, 0, 2), player.body.position);
     }
   };
 
@@ -32323,7 +32142,7 @@ void main() {
       this.world = world;
     }
     _state = 0 /* PRELOAD */;
-    _actors = [];
+    actors = [];
     get state() {
       return this._state;
     }
@@ -32340,17 +32159,12 @@ void main() {
     async tunnelUpdate(delta) {
       if (this._state !== 2 /* UPDATE */) return;
       this.update(delta);
-      this._actors.forEach((actor) => actor.update(delta));
     }
     preload() {
     }
     create() {
     }
     update(delta) {
-    }
-    addActor(actor) {
-      actor.preload();
-      this._actors.push(actor);
     }
   };
 
@@ -32784,9 +32598,9 @@ void main() {
       });
       this.player.preload();
       this.input = new InputController(this.player);
-      this.addActor(
+      this.actors.push(
         new ExempleOne({
-          modelname: "enemy",
+          model: "enemy",
           name: "inimigo",
           scene: this.scene,
           world: this.world,
@@ -32797,6 +32611,9 @@ void main() {
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
+      this.actors.forEach((actor) => {
+        actor.update(this.player, delta);
+      });
     }
   };
 

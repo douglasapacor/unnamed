@@ -21,9 +21,9 @@ export default class MainScene extends GameScene {
     });
     this.player.preload();
     this.input = new InputController(this.player);
-    this.addActor(
+    this.actors.push(
       new ExempleOne({
-        modelname: "enemy",
+        model: "enemy",
         name: "inimigo",
         scene: this.scene,
         world: this.world,
@@ -35,5 +35,9 @@ export default class MainScene extends GameScene {
   public update(delta: number): void {
     this.terrain.update(delta);
     this.player.update(delta);
+
+    this.actors.forEach((actor) => {
+      actor.update(this.player, delta);
+    });
   }
 }

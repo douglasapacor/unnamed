@@ -10,6 +10,7 @@ import {
   Vector3,
 } from "three";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import Player from "../Player";
 import { ECBody } from "./type";
 
 export default class Actor {
@@ -23,47 +24,28 @@ export default class Actor {
   private _actions: Record<string, AnimationAction> = {};
   private _action: AnimationAction | null = null;
   private _loader: GLTFLoader;
-  private _lastRotationY: number = 0;
   private _isActorReady: boolean = false;
   private _isActionsReady: boolean = false;
   private _isModelReady: boolean = false;
   private _totalActions: number = 0;
   private _actionsLoaded: number = 0;
+  private _lastRotationY: number = 0;
 
   constructor(
     protected params: {
       name: string;
-      modelname: string;
+      model: string;
       scene: Scene;
       world: World;
       position?: Vec3;
     }
   ) {
     this._name = params.name;
-    this._modelname = params.modelname;
+    this._modelname = params.model;
     this._path = `/assets/models/${this._modelname}.glb`;
     this._model = new Object3D();
     this._size = new Vector3();
     this._loader = new GLTFLoader();
-  }
-
-  public get body(): ECBody {
-    return this._body;
-  }
-
-  public get model(): Object3D {
-    return this._model;
-  }
-
-  public get actions(): Record<string, AnimationAction> {
-    return this._actions;
-  }
-
-  public get isReady(): boolean {
-    return this._isActorReady;
-  }
-
-  public preload() {
     this._loader.load(
       this._path,
       (gltf: GLTF) => {
@@ -113,15 +95,29 @@ export default class Actor {
     );
   }
 
-  public update(delta: number) {
+  public get body(): ECBody {
+    return this._body;
+  }
+
+  public get model(): Object3D {
+    return this._model;
+  }
+
+  public get actions(): Record<string, AnimationAction> {
+    return this._actions;
+  }
+
+  public get isReady(): boolean {
+    return this._isActorReady;
+  }
+
+  public update(player: Player, delta: number) {
     if (this._isActorReady) {
       if (this._mixer) this._mixer.update(delta);
-
       this.align();
+      this.rotation();
     } else {
-      if (this._isActionsReady && this._isModelReady) {
-        this._isActorReady = true;
-      }
+      if (this._isActionsReady && this._isModelReady) this._isActorReady = true;
     }
   }
 
@@ -142,6 +138,25 @@ export default class Actor {
         this._body.quaternion.w
       )
     );
+  }
+
+  private rotation(): void {
+    if (this._body.velocity.x !== 0 || this._body.velocity.z !== 0) {
+      const targetRotation = Math.atan2(
+        this._body.velocity.x,
+        this._body.velocity.z
+      );
+
+      this._model.rotation.y = MathUtils.lerp(
+        this._model.rotation.y,
+        targetRotation,
+        1
+      );
+
+      this._lastRotationY = this._model.rotation.y;
+    } else {
+      this._model.rotation.y = this._lastRotationY;
+    }
   }
 
   public playAnimation(name: string, timeScale?: number): void {

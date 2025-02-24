@@ -5,7 +5,7 @@ import { SceneState } from "./type";
 
 export default class GameScene {
   private _state: SceneState = SceneState.PRELOAD;
-  private _actors: Array<Actor> = [];
+  public actors: Array<Actor> = [];
 
   constructor(protected scene: THREE.Scene, protected world: CANNON.World) {}
 
@@ -31,18 +31,9 @@ export default class GameScene {
     if (this._state !== SceneState.UPDATE) return;
 
     this.update(delta);
-    this._actors.forEach((actor) => actor.update(delta));
   }
 
   preload() {}
-
   create() {}
-
   update(delta: number) {}
-
-  addActor(actor: Actor): void {
-    actor.preload();
-
-    this._actors.push(actor);
-  }
 }
