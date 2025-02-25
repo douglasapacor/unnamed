@@ -50,15 +50,13 @@ export default class Actor {
       this._path,
       (gltf: GLTF) => {
         this._totalActions = gltf.animations.length;
+
         this._model = gltf.scene;
         this._model.matrixAutoUpdate = true;
 
         new Box3().setFromObject(this._model).getSize(this._size);
-
         this.params.scene.add(this._model);
-
         this._mixer = new AnimationMixer(this._model);
-
         this._body = new Body({
           mass: 1,
           shape: new Box(
@@ -69,7 +67,6 @@ export default class Actor {
         });
 
         this._body.name = this.params.name;
-
         this._body.fixedRotation = true;
         this._body.angularDamping = 0.9;
         this._body.updateMassProperties();
@@ -79,9 +76,9 @@ export default class Actor {
         gltf.animations.forEach((clip) => {
           this._actions[clip.name] = this._mixer.clipAction(clip);
           this._actionsLoaded += 1;
-
-          if (this._actionsLoaded >= this._totalActions)
+          if (this._actionsLoaded >= this._totalActions) {
             this._isActionsReady = true;
+          }
         });
       },
       (event: ProgressEvent<EventTarget>) => {

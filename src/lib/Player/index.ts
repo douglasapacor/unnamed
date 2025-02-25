@@ -2,21 +2,17 @@ import { Vector3 } from "three";
 import { cameraEvents } from "../../events";
 import Attributes from "../Attributes";
 import Entity from "../Entity";
-import Life from "../Life";
 
 export default class Player extends Entity {
-  public life!: Life;
   public attributes!: Attributes;
 
   public preload() {
     super.preload();
-    this.life = new Life();
     this.attributes = new Attributes();
   }
 
   public update(delta: number) {
     super.update(delta);
-
     if (!this.isReady) return;
 
     if (this.moves.left) this.playAnimation("running_001");

@@ -29376,11 +29376,6 @@ void main() {
     }
   };
 
-  // src/helpers/random/implementation.ts
-  var generateRandomRangeNumber = (min, max) => {
-    return parseInt(`${Math.random() * (max - min) + min}`);
-  };
-
   // node_modules/three/examples/jsm/utils/BufferGeometryUtils.js
   function toTrianglesDrawMode(geometry, drawMode) {
     if (drawMode === TrianglesDrawMode) {
@@ -31972,8 +31967,9 @@ void main() {
           gltf.animations.forEach((clip) => {
             this._actions[clip.name] = this._mixer.clipAction(clip);
             this._actionsLoaded += 1;
-            if (this._actionsLoaded >= this._totalActions)
+            if (this._actionsLoaded >= this._totalActions) {
               this._isActionsReady = true;
+            }
           });
         },
         (event) => {
@@ -32077,9 +32073,8 @@ void main() {
     attackRange = 1;
     speed = 20;
     attackCooldown = 0;
-    maxCooldown = 10;
-    update(player, delta) {
-      super.update(player, delta);
+    maxCooldown = 1;
+    behaviour(player, delta) {
       if (!player.body) return;
       if (!this.body) return;
       const playerPos = new Vector3().copy(player.body.position);
@@ -32090,36 +32085,33 @@ void main() {
         case 0 /* IDLE */:
           if (distanceToPlayer <= this.detectionRange) {
             this.state = 1 /* CHASING */;
-            this.playAnimation("running");
-          } else this.playAnimation("idle_001");
+          }
           break;
         case 1 /* CHASING */:
           if (distanceToPlayer <= this.attackRange && this.attackCooldown === 0) {
             this.state = 2 /* ATTACKING */;
             this.attack(player);
-            const hit = generateRandomRangeNumber(1, 3);
-            switch (hit) {
-              case 1:
-                this.playAnimation("punch_001");
-                break;
-              case 2:
-                this.playAnimation("punch_002");
-                break;
-            }
-          } else if (distanceToPlayer > this.detectionRange) {
+          } else if (distanceToPlayer <= this.attackRange && this.attackCooldown > 0) {
+            this.state = 3 /* ATTACK_COLDOWN */;
+          } else if (distanceToPlayer >= this.attackRange * 5) {
             this.state = 0 /* IDLE */;
-            this.body.velocity.set(0, this.body.velocity.y, 0);
-            this.playAnimation("idle_001");
           } else {
             this.chase(playerPos);
           }
           break;
         case 2 /* ATTACKING */:
-          if (this.attackCooldown === 0) {
+          if (distanceToPlayer <= this.attackRange && this.attackCooldown === 0) {
+            this.state = 2 /* ATTACKING */;
+            this.attack(player);
+          } else if (distanceToPlayer > this.attackRange) {
             this.state = 1 /* CHASING */;
           }
           break;
       }
+    }
+    update(player, delta) {
+      super.update(player, delta);
+      this.behaviour(player, delta);
     }
     chase(targetPosition) {
       const direction = targetPosition.clone().sub(this.body.position).normalize();
@@ -32225,24 +32217,23 @@ void main() {
 
   // src/lib/InputController/index.ts
   var InputController = class {
-    _player;
     constructor(player) {
-      this._player = player;
+      this.player = player;
       InputManager.instance.subscribe(this.onInput.bind(this));
     }
     onInput(key, state) {
       switch (key) {
         case "KeyA":
-          state ? this._player.walkLeftOn(this._player.attributes.movespeed) : this._player.walkLeftOff();
+          state ? this.player.walkLeftOn(this.player.attributes.movespeed) : this.player.walkLeftOff();
           break;
         case "KeyD":
-          state ? this._player.walkRightOn(this._player.attributes.movespeed) : this._player.walkRightOff();
+          state ? this.player.walkRightOn(this.player.attributes.movespeed) : this.player.walkRightOff();
           break;
         case "KeyW":
-          state ? this._player.walkUpOn(this._player.attributes.movespeed) : this._player.walkUpOff();
+          state ? this.player.walkUpOn(this.player.attributes.movespeed) : this.player.walkUpOff();
           break;
         case "KeyS":
-          state ? this._player.walkDownOn(this._player.attributes.movespeed) : this._player.walkDownOff();
+          state ? this.player.walkDownOn(this.player.attributes.movespeed) : this.player.walkDownOff();
           break;
       }
     }
@@ -32261,7 +32252,7 @@ void main() {
       this._strength = 10;
       this._intelligence = 10;
       this._dexterity = 10;
-      this._baseMovespeed = 20 + this._strength * 0.5 + this._dexterity * 0.5;
+      this._baseMovespeed = 25;
     }
     get strength() {
       return this._strength;
@@ -32484,42 +32475,11 @@ void main() {
     }
   };
 
-  // src/lib/Life/index.ts
-  var Life = class {
-    _total;
-    _currently;
-    _percent;
-    constructor() {
-      this._total = 100;
-      this._currently = 100;
-      this._percent = `${(this._currently / this._total * 100).toFixed(2)}%`;
-    }
-    get total() {
-      return this._total;
-    }
-    get currently() {
-      return this._currently;
-    }
-    get percent() {
-      return this._percent;
-    }
-    damage(value) {
-      this._currently -= value;
-      this._percent = `${(this._currently / this._total * 100).toFixed(2)}%`;
-    }
-    heal(value) {
-      this._currently += value;
-      this._percent = `${(this._currently / this._total * 100).toFixed(2)}%`;
-    }
-  };
-
   // src/lib/Player/index.ts
   var Player = class extends Entity {
-    life;
     attributes;
     preload() {
       super.preload();
-      this.life = new Life();
       this.attributes = new Attributes();
     }
     update(delta) {
@@ -32586,7 +32546,6 @@ void main() {
   var MainScene = class extends GameScene {
     terrain;
     player;
-    input;
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
       this.player = new Player({
@@ -32597,7 +32556,9 @@ void main() {
         position: new Vec3(0, -3, 0)
       });
       this.player.preload();
-      this.input = new InputController(this.player);
+    }
+    create() {
+      new InputController(this.player);
       this.actors.push(
         new ExempleOne({
           model: "enemy",
@@ -32636,3 +32597,4 @@ three/build/three.module.js:
    * SPDX-License-Identifier: MIT
    *)
 */
+//# sourceMappingURL=index.js.map

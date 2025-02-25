@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "applicationId": "com.douglasapacor.unnamed",
-  "port": 0,
+  "port": 55444,
   "defaultMode": "window",
   "enableHTTPServer": true,
   "enableNativeAPI": true,

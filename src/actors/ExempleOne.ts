@@ -1,13 +1,13 @@
 import { Vec3 } from "cannon-es";
 import { Vector3 } from "three";
-import { generateRandomRangeNumber } from "../helpers/random";
 import Actor from "../lib/Actor";
 import Player from "../lib/Player";
 
 enum states {
   IDLE,
-  CHASING,
-  ATTACKING,
+  CHASE,
+  ATTACK,
+  ATTACK_COLDOWN,
 }
 
 export class ExempleOne extends Actor {
@@ -18,9 +18,7 @@ export class ExempleOne extends Actor {
   private attackCooldown: number = 0;
   private maxCooldown: number = 1;
 
-  public update(player: Player, delta: number): void {
-    super.update(player, delta);
-
+  private behaviour(player: Player, delta: number): void {
     if (!player.body) return;
     if (!this.body) return;
 
@@ -33,40 +31,21 @@ export class ExempleOne extends Actor {
     switch (this.state) {
       case states.IDLE:
         if (distanceToPlayer <= this.detectionRange) {
-          this.state = states.CHASING;
-          this.playAnimation("running");
-        } else this.playAnimation("idle_001");
-        break;
-      case states.CHASING:
-        if (distanceToPlayer <= this.attackRange && this.attackCooldown === 0) {
-          this.state = states.ATTACKING;
-          this.attack(player);
-          const hit = generateRandomRangeNumber(1, 3);
-          switch (hit) {
-            case 1:
-              this.playAnimation("punch_001");
-              break;
-            case 2:
-              this.playAnimation("punch_002");
-              break;
-          }
-        } else if (distanceToPlayer > this.detectionRange) {
-          this.state = states.IDLE;
-          this.body.velocity.set(0, this.body.velocity.y, 0);
-
-          this.playAnimation("idle_001");
-        } else {
-          this.chase(playerPos);
+          this.state = states.CHASE;
         }
-
         break;
-      case states.ATTACKING:
-        if (this.attackCooldown === 0) {
-          this.state = states.CHASING;
-        }
-
+      case states.CHASE:
+        break;
+      case states.ATTACK:
+        break;
+      case states.ATTACK_COLDOWN:
         break;
     }
+  }
+
+  public update(player: Player, delta: number): void {
+    super.update(player, delta);
+    this.behaviour(player, delta);
   }
 
   private chase(targetPosition: Vector3) {

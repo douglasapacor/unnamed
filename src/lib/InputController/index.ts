@@ -3,10 +3,7 @@ import { InputHandler } from "../InputManager/type";
 import Player from "../Player";
 
 export class InputController implements InputHandler {
-  private _player: Player;
-
-  constructor(player: Player) {
-    this._player = player;
+  constructor(private player: Player) {
     InputManager.instance.subscribe(this.onInput.bind(this));
   }
 
@@ -14,23 +11,23 @@ export class InputController implements InputHandler {
     switch (key) {
       case "KeyA":
         state
-          ? this._player.walkLeftOn(this._player.attributes.movespeed)
-          : this._player.walkLeftOff();
+          ? this.player.walkLeftOn(this.player.attributes.movespeed)
+          : this.player.walkLeftOff();
         break;
       case "KeyD":
         state
-          ? this._player.walkRightOn(this._player.attributes.movespeed)
-          : this._player.walkRightOff();
+          ? this.player.walkRightOn(this.player.attributes.movespeed)
+          : this.player.walkRightOff();
         break;
       case "KeyW":
         state
-          ? this._player.walkUpOn(this._player.attributes.movespeed)
-          : this._player.walkUpOff();
+          ? this.player.walkUpOn(this.player.attributes.movespeed)
+          : this.player.walkUpOff();
         break;
       case "KeyS":
         state
-          ? this._player.walkDownOn(this._player.attributes.movespeed)
-          : this._player.walkDownOff();
+          ? this.player.walkDownOn(this.player.attributes.movespeed)
+          : this.player.walkDownOff();
         break;
     }
   }
