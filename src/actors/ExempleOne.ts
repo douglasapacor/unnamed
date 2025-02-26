@@ -35,8 +35,18 @@ export class ExempleOne extends Actor {
         }
         break;
       case states.CHASE:
+        if (distanceToPlayer <= this.attackRange) {
+          if (this.attackCooldown <= 0) {
+            this.state = states.ATTACK;
+          } else {
+            this.state = states.ATTACK_COLDOWN;
+          }
+        } else {
+          this.chase(playerPos);
+        }
         break;
       case states.ATTACK:
+        this.attack(player);
         break;
       case states.ATTACK_COLDOWN:
         break;
