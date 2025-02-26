@@ -2,3 +2,9 @@ body {
   margin: 0;
   overflow: hidden;
 }
+
+.ui-element {
+  pointer-events: auto; /* Reativa cliques apenas nos elementos */
+  position: absolute;
+  font-family: Arial, sans-serif;
+}

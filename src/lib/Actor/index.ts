@@ -42,7 +42,7 @@ export default class Actor {
   ) {
     this._name = params.name;
     this._modelname = params.model;
-    this._path = `/assets/models/${this._modelname}.glb`;
+    this._path = this._modelname;
     this._model = new Object3D();
     this._size = new Vector3();
     this._loader = new GLTFLoader();

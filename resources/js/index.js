@@ -7114,12 +7114,12 @@
       return new _BoxGeometry(data.width, data.height, data.depth, data.widthSegments, data.heightSegments, data.depthSegments);
     }
   };
-  function cloneUniforms(src) {
+  function cloneUniforms(src2) {
     const dst = {};
-    for (const u in src) {
+    for (const u in src2) {
       dst[u] = {};
-      for (const p in src[u]) {
-        const property = src[u][p];
+      for (const p in src2[u]) {
+        const property = src2[u][p];
         if (property && (property.isColor || property.isMatrix3 || property.isMatrix4 || property.isVector2 || property.isVector3 || property.isVector4 || property.isTexture || property.isQuaternion)) {
           if (property.isRenderTargetTexture) {
             console.warn("UniformsUtils: Textures of render targets cannot be cloned via cloneUniforms() or mergeUniforms().");
@@ -7146,10 +7146,10 @@
     }
     return merged;
   }
-  function cloneUniformsGroups(src) {
+  function cloneUniformsGroups(src2) {
     const dst = [];
-    for (let u = 0; u < src.length; u++) {
-      dst.push(src[u].clone());
+    for (let u = 0; u < src2.length; u++) {
+      dst.push(src2[u].clone());
     }
     return dst;
   }
@@ -29313,6 +29313,7 @@ void main() {
     physic;
     renderer;
     canvas;
+    uiContainer;
     clock;
     socket;
     gameSceneList;
@@ -29326,12 +29327,23 @@ void main() {
       if (this.state !== 0 /* BUILD */) return;
       this.clock = new Clock();
       this.canvas = document.createElement("canvas");
-      this.canvas.id = "3D_layer";
+      this.canvas.id = "gameLayer";
       this.canvas.style.position = "absolute";
       this.canvas.style.top = "0";
       this.canvas.style.left = "0";
+      this.canvas.style.width = "100%";
+      this.canvas.style.height = "100%";
       this.canvas.style.pointerEvents = "none";
+      this.uiContainer = document.createElement("div");
+      this.uiContainer.id = "uiContainer";
+      this.uiContainer.style.position = "absolute";
+      this.uiContainer.style.top = "0";
+      this.uiContainer.style.left = "0";
+      this.uiContainer.style.width = "100%";
+      this.uiContainer.style.height = "100%";
+      this.uiContainer.style.pointerEvents = "none";
       document.body.appendChild(this.canvas);
+      document.body.appendChild(this.uiContainer);
       this.scene = new Scene();
       this.camera = new Camera2();
       this.light = new Light2();
@@ -31938,7 +31950,7 @@ void main() {
       this.params = params;
       this._name = params.name;
       this._modelname = params.model;
-      this._path = `/assets/models/${this._modelname}.glb`;
+      this._path = this._modelname;
       this._model = new Object3D();
       this._size = new Vector3();
       this._loader = new GLTFLoader();
@@ -32068,51 +32080,12 @@ void main() {
 
   // src/actors/ExempleOne.ts
   var ExempleOne = class extends Actor {
-    state = 0 /* IDLE */;
-    detectionRange = 25;
+    inCombat = false;
+    detectionRange = 10;
     attackRange = 1;
     speed = 20;
     attackCooldown = 0;
     maxCooldown = 1;
-    behaviour(player, delta) {
-      if (!player.body) return;
-      if (!this.body) return;
-      const playerPos = new Vector3().copy(player.body.position);
-      const mobPos = new Vector3().copy(this.body.position);
-      const distanceToPlayer = mobPos.distanceTo(playerPos);
-      this.attackCooldown = Math.max(0, this.attackCooldown - delta);
-      switch (this.state) {
-        case 0 /* IDLE */:
-          if (distanceToPlayer <= this.detectionRange) {
-            this.state = 1 /* CHASING */;
-          }
-          break;
-        case 1 /* CHASING */:
-          if (distanceToPlayer <= this.attackRange && this.attackCooldown === 0) {
-            this.state = 2 /* ATTACKING */;
-            this.attack(player);
-          } else if (distanceToPlayer <= this.attackRange && this.attackCooldown > 0) {
-            this.state = 3 /* ATTACK_COLDOWN */;
-          } else if (distanceToPlayer >= this.attackRange * 5) {
-            this.state = 0 /* IDLE */;
-          } else {
-            this.chase(playerPos);
-          }
-          break;
-        case 2 /* ATTACKING */:
-          if (distanceToPlayer <= this.attackRange && this.attackCooldown === 0) {
-            this.state = 2 /* ATTACKING */;
-            this.attack(player);
-          } else if (distanceToPlayer > this.attackRange) {
-            this.state = 1 /* CHASING */;
-          }
-          break;
-      }
-    }
-    update(player, delta) {
-      super.update(player, delta);
-      this.behaviour(player, delta);
-    }
     chase(targetPosition) {
       const direction = targetPosition.clone().sub(this.body.position).normalize();
       this.body.velocity.set(
@@ -32125,7 +32098,81 @@ void main() {
       this.attackCooldown = this.maxCooldown;
       player.body.applyImpulse(new Vec3(2, 0, 2), player.body.position);
     }
+    behaviour(player, delta) {
+      if (!player.body) return;
+      if (!this.body) return;
+      const playerPos = new Vector3().copy(player.body.position);
+      const mobPos = new Vector3().copy(this.body.position);
+      const distanceToPlayer = mobPos.distanceTo(playerPos);
+      this.attackCooldown = Math.max(0, this.attackCooldown - delta);
+      if (this.inCombat) {
+        if (distanceToPlayer >= 20) {
+          this.inCombat = false;
+          return;
+        }
+        if (distanceToPlayer <= this.attackRange) {
+          if (this.attackCooldown <= 0) {
+            this.attack(player);
+            this.playAnimation("punch_002");
+          } else {
+            this.playAnimation("idle_001");
+          }
+        } else {
+          this.chase(new Vector3().copy(player.body.position));
+          this.playAnimation("running");
+        }
+      } else {
+        if (distanceToPlayer <= this.detectionRange) {
+          this.inCombat = true;
+          return;
+        } else {
+          this.playAnimation("idle_001");
+        }
+      }
+    }
+    update(player, delta) {
+      super.update(player, delta);
+      this.behaviour(player, delta);
+    }
   };
+
+  // src/directories.ts
+  var src = "src/";
+  var http = "/";
+  var resources = "/resources";
+  var folders = {
+    src: {
+      root: src,
+      actors: src + "actors/",
+      data: src + "data/",
+      helpers: src + "helpers/",
+      lib: src + "lib/",
+      scenes: src + "scenes/",
+      types: src + "types/"
+    },
+    http: {
+      root: http,
+      assets: {
+        root: http + "assets/",
+        models: http + "assets/models/",
+        images: http + "assets/images/"
+      },
+      icons: {
+        root: http + "icons/"
+      }
+    },
+    resources: {
+      root: resources,
+      assets: {
+        root: resources + "assets/",
+        models: resources + "assets/models/",
+        images: resources + "assets/images/"
+      },
+      icons: resources + "assets/icons/"
+    }
+  };
+  var enemy = `${folders.http.assets.models}enemy.glb`;
+  var dummy = `${folders.http.assets.models}dummy.glb`;
 
   // src/lib/GameScene/index.ts
   var GameScene = class {
@@ -32244,24 +32291,9 @@ void main() {
 
   // src/lib/Attributes/index.ts
   var Attributes = class {
-    _strength;
-    _intelligence;
-    _dexterity;
     _baseMovespeed;
     constructor() {
-      this._strength = 10;
-      this._intelligence = 10;
-      this._dexterity = 10;
       this._baseMovespeed = 25;
-    }
-    get strength() {
-      return this._strength;
-    }
-    get intelligence() {
-      return this._intelligence;
-    }
-    get dexterity() {
-      return this._dexterity;
     }
     get movespeed() {
       return this._baseMovespeed;
@@ -32272,7 +32304,7 @@ void main() {
   var Entity = class {
     constructor(params) {
       this.params = params;
-      this._path = `/assets/models/${params.model}.glb`;
+      this._path = params.model;
       this._moves = {
         up: false,
         down: false,
@@ -32550,7 +32582,7 @@ void main() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
       this.player = new Player({
         name: "player",
-        model: "dummy",
+        model: dummy,
         scene: this.scene,
         world: this.world,
         position: new Vec3(0, -3, 0)
@@ -32561,7 +32593,7 @@ void main() {
       new InputController(this.player);
       this.actors.push(
         new ExempleOne({
-          model: "enemy",
+          model: enemy,
           name: "inimigo",
           scene: this.scene,
           world: this.world,

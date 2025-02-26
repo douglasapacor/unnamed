@@ -31,7 +31,7 @@ export default class Entity {
       position?: CANNON.Vec3;
     }
   ) {
-    this._path = `/assets/models/${params.model}.glb`;
+    this._path = params.model;
     this._moves = {
       up: false,
       down: false,

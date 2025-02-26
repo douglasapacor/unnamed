@@ -1,9 +1,11 @@
 import { Vec3 } from "cannon-es";
 import { ExempleOne } from "../actors/ExempleOne";
+import { dummy, enemy } from "../directories";
 import GameScene from "../lib/GameScene";
 import { InputController } from "../lib/InputController";
 import Player from "../lib/Player";
 import Terrain from "../lib/Terrain";
+
 export default class MainScene extends GameScene {
   private terrain!: Terrain;
   private player!: Player;
@@ -12,7 +14,7 @@ export default class MainScene extends GameScene {
     this.terrain = new Terrain({ scene: this.scene, world: this.world });
     this.player = new Player({
       name: "player",
-      model: "dummy",
+      model: dummy,
       scene: this.scene,
       world: this.world,
       position: new Vec3(0, -3, 0),
@@ -26,7 +28,7 @@ export default class MainScene extends GameScene {
 
     this.actors.push(
       new ExempleOne({
-        model: "enemy",
+        model: enemy,
         name: "inimigo",
         scene: this.scene,
         world: this.world,

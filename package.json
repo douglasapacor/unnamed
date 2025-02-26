@@ -1,16 +1,16 @@
 {
-  "name": "unnamed-neutralino",
+  "name": "unnamed",
   "version": "1.0.0",
-  "description": "néh",
+  "description": "game",
   "main": "index.js",
   "scripts": {
     "build:neu": "neu build",
-    "build": "node build.js",
     "start": "neu run",
-    "all": "npm run build && npm start"
+    "build:ts": "node build.js",
+    "dev": "npm run build:ts && npm start"
   },
   "keywords": [],
-  "author": "",
+  "author": "Douglas Pacor",
   "dependencies": {
     "@types/three": "0.173.0",
     "cannon-es": "0.20.0",

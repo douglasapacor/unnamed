@@ -12,6 +12,7 @@ export default class Game {
   private physic!: Physic;
   private renderer!: THREE.WebGLRenderer;
   private canvas!: HTMLCanvasElement;
+  private uiContainer!: HTMLDivElement;
   private clock!: THREE.Clock;
   private socket?: GameScene;
   private gameSceneList: (typeof GameScene)[];
@@ -30,13 +31,25 @@ export default class Game {
     this.clock = new THREE.Clock();
 
     this.canvas = document.createElement("canvas");
-    this.canvas.id = "3D_layer";
+    this.canvas.id = "gameLayer";
     this.canvas.style.position = "absolute";
     this.canvas.style.top = "0";
     this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     this.canvas.style.pointerEvents = "none";
 
+    this.uiContainer = document.createElement("div");
+    this.uiContainer.id = "uiContainer";
+    this.uiContainer.style.position = "absolute";
+    this.uiContainer.style.top = "0";
+    this.uiContainer.style.left = "0";
+    this.uiContainer.style.width = "100%";
+    this.uiContainer.style.height = "100%";
+    this.uiContainer.style.pointerEvents = "none";
+
     document.body.appendChild(this.canvas);
+    document.body.appendChild(this.uiContainer);
 
     this.scene = new THREE.Scene();
     this.camera = new Camera();

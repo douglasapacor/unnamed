@@ -9,9 +9,10 @@ declare namespace Neutralino {
     ): Promise<void>;
   }
 
-  // namespace filesystem {
-  //   function readFile(path: string): Promise<string>;
-  // }
+  namespace filesystem {
+    function readFile(path: string): Promise<string>;
+    function writeFile(filename: string, data: any);
+  }
 }
 
 declare const Neutralino: typeof Neutralino;
