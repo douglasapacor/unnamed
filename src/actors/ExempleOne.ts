@@ -1,6 +1,7 @@
 import { Vec3 } from "cannon-es";
 import { Vector3 } from "three";
 import Actor from "../lib/Actor";
+import gameState from "../lib/GameState";
 import Player from "../lib/Player";
 
 export class ExempleOne extends Actor {
@@ -26,6 +27,7 @@ export class ExempleOne extends Actor {
 
   private attack(player: Player) {
     this.attackCooldown = this.maxCooldown;
+    gameState.updatePlayerHealth(gameState.player.health - 10);
     player.body.applyImpulse(new Vec3(2, 0, 2), player.body.position);
   }
 

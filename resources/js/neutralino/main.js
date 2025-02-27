@@ -43,3 +43,8 @@ Neutralino.events.on("windowClose", onWindowClose);
 if (NL_OS != "Darwin") {
   setTray();
 }
+
+const ws = new WebSocket("ws://localhost:55444");
+ws.onmessage = (event) => {
+  if (event.data === "reload") window.location.reload();
+};

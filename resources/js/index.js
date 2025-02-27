@@ -29335,7 +29335,7 @@ void main() {
       this.canvas.style.height = "100%";
       this.canvas.style.pointerEvents = "none";
       this.uiContainer = document.createElement("div");
-      this.uiContainer.id = "uiContainer";
+      this.uiContainer.id = "ui-container";
       this.uiContainer.style.position = "absolute";
       this.uiContainer.style.top = "0";
       this.uiContainer.style.left = "0";
@@ -32078,6 +32078,42 @@ void main() {
     }
   };
 
+  // src/lib/GameState/index.ts
+  var GameState2 = class {
+    events;
+    player;
+    constructor() {
+      this.events = new Event();
+      this.player = {
+        health: 100,
+        maxHealth: 100,
+        position: new Vector3(0, 1, 0)
+      };
+    }
+    updatePlayerPosition(position) {
+      this.player.position = position.clone();
+      this.events.emit({
+        name: "playerPositionChanged",
+        value: this.player.position
+      });
+    }
+    updatePlayerHealth(health) {
+      this.player.health = Math.max(0, Math.min(health, this.player.maxHealth));
+      this.events.emit({
+        name: "playerHealthChanged",
+        value: this.player.health
+      });
+    }
+    on(event) {
+      return this.events.on(event);
+    }
+    off(id) {
+      this.events.off(id);
+    }
+  };
+  var gameState = new GameState2();
+  var GameState_default = gameState;
+
   // src/actors/ExempleOne.ts
   var ExempleOne = class extends Actor {
     inCombat = false;
@@ -32096,6 +32132,7 @@ void main() {
     }
     attack(player) {
       this.attackCooldown = this.maxCooldown;
+      GameState_default.updatePlayerHealth(GameState_default.player.health - 10);
       player.body.applyImpulse(new Vec3(2, 0, 2), player.body.position);
     }
     behaviour(player, delta) {
@@ -32173,6 +32210,49 @@ void main() {
   };
   var enemy = `${folders.http.assets.models}enemy.glb`;
   var dummy = `${folders.http.assets.models}dummy.glb`;
+
+  // src/lib/UI/UIComponent/index.ts
+  var UIComponent = class {
+    element;
+    container;
+    constructor(id, containerId = "ui-container") {
+      this.container = document.getElementById(containerId);
+      this.element = document.createElement("div");
+      this.element.id = id;
+      this.element.className = "ui-element";
+      this.container.appendChild(this.element);
+    }
+    destroy() {
+      this.container.removeChild(this.element);
+    }
+    getElement() {
+      return this.element;
+    }
+  };
+
+  // src/GUI/HealthBar/index.ts
+  var HealthBar = class extends UIComponent {
+    bar;
+    constructor(id) {
+      super(id);
+      this.element.style.top = "10px";
+      this.element.style.left = "10px";
+      this.element.style.width = "200px";
+      this.element.style.height = "20px";
+      this.element.style.backgroundColor = "#444";
+      this.element.style.border = "1px solid #fff";
+      this.element.style.zIndex = "99";
+      this.bar = document.createElement("div");
+      this.bar.style.height = "100%";
+      this.bar.style.backgroundColor = "#ff0000";
+      this.element.appendChild(this.bar);
+    }
+    update(delta) {
+      const percent = GameState_default.player.health / GameState_default.player.maxHealth * 100;
+      this.bar.style.width = `${percent}%`;
+      this.element.title = `Vida: ${GameState_default.player.health}/${GameState_default.player.maxHealth}`;
+    }
+  };
 
   // src/lib/GameScene/index.ts
   var GameScene = class {
@@ -32574,10 +32654,37 @@ void main() {
     }
   };
 
+  // src/lib/UI/UIManager/UIManager.ts
+  var UIManager = class {
+    components;
+    constructor() {
+      this.components = /* @__PURE__ */ new Map();
+    }
+    addComponent(component, id) {
+      if (this.components.has(id)) {
+        this.removeComponent(id);
+      }
+      this.components.set(id, component);
+    }
+    removeComponent(id) {
+      const component = this.components.get(id);
+      if (component) {
+        component.destroy();
+        this.components.delete(id);
+      }
+    }
+    update(delta) {
+      this.components.forEach((component) => {
+        component.update(delta);
+      });
+    }
+  };
+
   // src/scenes/MainScene.ts
   var MainScene = class extends GameScene {
     terrain;
     player;
+    uimanager = new UIManager();
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
       this.player = new Player({
@@ -32588,6 +32695,7 @@ void main() {
         position: new Vec3(0, -3, 0)
       });
       this.player.preload();
+      this.uimanager.addComponent(new HealthBar("health-bar"), "health-bar");
     }
     create() {
       new InputController(this.player);
@@ -32604,6 +32712,7 @@ void main() {
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
+      this.uimanager.update(delta);
       this.actors.forEach((actor) => {
         actor.update(this.player, delta);
       });

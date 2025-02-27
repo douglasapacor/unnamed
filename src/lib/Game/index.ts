@@ -40,7 +40,7 @@ export default class Game {
     this.canvas.style.pointerEvents = "none";
 
     this.uiContainer = document.createElement("div");
-    this.uiContainer.id = "uiContainer";
+    this.uiContainer.id = "ui-container";
     this.uiContainer.style.position = "absolute";
     this.uiContainer.style.top = "0";
     this.uiContainer.style.left = "0";

@@ -5,23 +5,25 @@ export class JSONHandler extends FileHandler {
     super(path);
   }
 
-  private async load(): Promise<any> {
+  async load(): Promise<any> {
     try {
-      const data = await Neutralino.filesystem.readFile(this.path);
-
-      return JSON.parse(data);
+      return JSON.parse(await Neutralino.filesystem.readFile(this.path));
     } catch (error: any) {
       if (error.code === "NE_FS_FILRDER") {
         const jsonData = JSON.stringify({}, null, 2);
         await Neutralino.filesystem.writeFile(this.path, jsonData);
       }
-
       return {};
     }
   }
 
   async read(): Promise<any> {
-    return await this.load();
+    try {
+      const data = await Neutralino.filesystem.readFile(this.path);
+      return JSON.parse(data);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   async write(data: any): Promise<void> {
