@@ -22527,7 +22527,42 @@ void main() {
     }
   };
 
-  // src/events.ts
+  // src/lib/GameState/index.ts
+  var GameState = class {
+    events;
+    player;
+    constructor() {
+      this.events = new Event();
+      this.player = {
+        health: 100,
+        maxHealth: 100,
+        position: new Vector3(0, 1, 0)
+      };
+    }
+    updatePlayerPosition(position) {
+      this.player.position = position.clone();
+      this.events.emit({
+        name: "playerPositionChanged",
+        value: this.player.position
+      });
+    }
+    updatePlayerHealth(health) {
+      this.player.health = Math.max(0, Math.min(health, this.player.maxHealth));
+      this.events.emit({
+        name: "playerHealthChanged",
+        value: this.player.health
+      });
+    }
+    on(event) {
+      return this.events.on(event);
+    }
+    off(id) {
+      this.events.off(id);
+    }
+  };
+
+  // src/global.ts
+  var gameState = new GameState();
   var cameraEvents = new Event();
 
   // src/lib/Camera/index.ts
@@ -32078,42 +32113,6 @@ void main() {
     }
   };
 
-  // src/lib/GameState/index.ts
-  var GameState2 = class {
-    events;
-    player;
-    constructor() {
-      this.events = new Event();
-      this.player = {
-        health: 100,
-        maxHealth: 100,
-        position: new Vector3(0, 1, 0)
-      };
-    }
-    updatePlayerPosition(position) {
-      this.player.position = position.clone();
-      this.events.emit({
-        name: "playerPositionChanged",
-        value: this.player.position
-      });
-    }
-    updatePlayerHealth(health) {
-      this.player.health = Math.max(0, Math.min(health, this.player.maxHealth));
-      this.events.emit({
-        name: "playerHealthChanged",
-        value: this.player.health
-      });
-    }
-    on(event) {
-      return this.events.on(event);
-    }
-    off(id) {
-      this.events.off(id);
-    }
-  };
-  var gameState = new GameState2();
-  var GameState_default = gameState;
-
   // src/actors/ExempleOne.ts
   var ExempleOne = class extends Actor {
     inCombat = false;
@@ -32132,7 +32131,7 @@ void main() {
     }
     attack(player) {
       this.attackCooldown = this.maxCooldown;
-      GameState_default.updatePlayerHealth(GameState_default.player.health - 10);
+      gameState.updatePlayerHealth(gameState.player.health - 10);
       player.body.applyImpulse(new Vec3(2, 0, 2), player.body.position);
     }
     behaviour(player, delta) {
@@ -32248,9 +32247,9 @@ void main() {
       this.element.appendChild(this.bar);
     }
     update(delta) {
-      const percent = GameState_default.player.health / GameState_default.player.maxHealth * 100;
+      const percent = gameState.player.health / gameState.player.maxHealth * 100;
       this.bar.style.width = `${percent}%`;
-      this.element.title = `Vida: ${GameState_default.player.health}/${GameState_default.player.maxHealth}`;
+      this.element.title = `Vida: ${gameState.player.health}/${gameState.player.maxHealth}`;
     }
   };
 

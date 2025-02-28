@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import { Event } from "../Event";
 import { onEvent } from "../Event/type";
 
-class GameState {
+export class GameState {
   private events: Event;
   public player: { health: number; maxHealth: number; position: Vector3 };
 
@@ -39,6 +39,3 @@ class GameState {
     this.events.off(id);
   }
 }
-
-const gameState = new GameState();
-export default gameState;

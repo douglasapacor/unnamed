@@ -1,4 +1,4 @@
-import gameState from "../../lib/GameState";
+import { gameState } from "../../global";
 import { UIComponent } from "../../lib/UI/UIComponent";
 
 export class HealthBar extends UIComponent {

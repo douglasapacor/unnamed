@@ -32,6 +32,7 @@ const folders = {
     icons: resources + "assets/icons/",
   },
 };
+
 const enemy = `${folders.http.assets.models}enemy.glb`;
 const dummy = `${folders.http.assets.models}dummy.glb`;
 

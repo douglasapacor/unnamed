@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
-import { cameraEvents } from "../../events";
 import Attributes from "../Attributes";
 import Entity from "../Entity";
+import { cameraEvents } from "../../global";
 
 export default class Player extends Entity {
   public attributes!: Attributes;

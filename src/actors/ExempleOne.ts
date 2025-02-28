@@ -1,8 +1,8 @@
 import { Vec3 } from "cannon-es";
 import { Vector3 } from "three";
 import Actor from "../lib/Actor";
-import gameState from "../lib/GameState";
 import Player from "../lib/Player";
+import { gameState } from "../global";
 
 export class ExempleOne extends Actor {
   private inCombat: boolean = false;
