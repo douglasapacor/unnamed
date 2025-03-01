@@ -5,6 +5,10 @@ import { onEvent } from "../Event/type";
 export class GameState {
   private events: Event;
   public player: { health: number; maxHealth: number; position: Vector3 };
+  public config: {
+    items?: { id: string; name: string }[];
+    inventory?: string[];
+  };
 
   constructor() {
     this.events = new Event();
@@ -12,6 +16,13 @@ export class GameState {
       health: 100,
       maxHealth: 100,
       position: new Vector3(0, 1, 0),
+    };
+    this.config = {
+      items: [
+        { id: "sword", name: "Espada" },
+        { id: "potion", name: "Poção" },
+      ],
+      inventory: ["sword", "potion"], // Itens iniciais
     };
   }
 

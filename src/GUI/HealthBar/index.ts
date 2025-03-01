@@ -21,7 +21,7 @@ export class HealthBar extends UIComponent {
     this.element.appendChild(this.bar);
   }
 
-  update(delta: number) {
+  update() {
     const percent =
       (gameState.player.health / gameState.player.maxHealth) * 100;
     this.bar.style.width = `${percent}%`;

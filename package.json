@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build:neu": "neu build",
-    "start": "neu run",
     "build:ts": "node build.js",
-    "dev": "npm run build:ts && npm start"
+    "start": "neu run",
+    "dev": "concurrently \"node build.js\" \"neu run\""
   },
   "keywords": [],
   "author": "Douglas Pacor",
@@ -17,9 +17,10 @@
     "three": "0.173.0"
   },
   "devDependencies": {
-    "chokidar": "^4.0.3",
+    "chokidar": "4.0.3",
+    "concurrently": "^9.1.2",
     "esbuild": "0.25.0",
     "typescript": "5.7.3",
-    "ws": "^8.18.1"
+    "ws": "8.18.1"
   }
 }

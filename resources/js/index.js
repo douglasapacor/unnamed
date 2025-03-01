@@ -22531,12 +22531,21 @@ void main() {
   var GameState = class {
     events;
     player;
+    config;
     constructor() {
       this.events = new Event();
       this.player = {
         health: 100,
         maxHealth: 100,
         position: new Vector3(0, 1, 0)
+      };
+      this.config = {
+        items: [
+          { id: "sword", name: "Espada" },
+          { id: "potion", name: "Po\xE7\xE3o" }
+        ],
+        inventory: ["sword", "potion"]
+        // Itens iniciais
       };
     }
     updatePlayerPosition(position) {
@@ -29423,6 +29432,328 @@ void main() {
     }
   };
 
+  // src/directories.ts
+  var src = "src/";
+  var http = "/";
+  var resources = "/resources";
+  var folders = {
+    src: {
+      root: src,
+      actors: src + "actors/",
+      data: src + "data/",
+      helpers: src + "helpers/",
+      lib: src + "lib/",
+      scenes: src + "scenes/",
+      types: src + "types/"
+    },
+    http: {
+      root: http,
+      assets: {
+        root: http + "assets/",
+        models: http + "assets/models/",
+        images: http + "assets/images/"
+      },
+      icons: {
+        root: http + "icons/"
+      }
+    },
+    resources: {
+      root: resources,
+      assets: {
+        root: resources + "assets/",
+        models: resources + "assets/models/",
+        images: resources + "assets/images/"
+      },
+      icons: resources + "assets/icons/"
+    }
+  };
+  var enemy = `${folders.http.assets.models}enemy.glb`;
+  var dummy = `${folders.http.assets.models}dummy.glb`;
+
+  // src/lib/UI/UIComponent/index.ts
+  var UIComponent = class {
+    element;
+    container;
+    constructor(id, containerId = "ui-container") {
+      this.container = document.getElementById(containerId);
+      this.element = document.createElement("div");
+      this.element.id = id;
+      this.element.className = "ui-element";
+      this.container.appendChild(this.element);
+    }
+    destroy() {
+      this.container.removeChild(this.element);
+    }
+    getElement() {
+      return this.element;
+    }
+  };
+
+  // src/GUI/HealthBar/index.ts
+  var HealthBar = class extends UIComponent {
+    bar;
+    constructor(id) {
+      super(id);
+      this.element.style.top = "10px";
+      this.element.style.left = "10px";
+      this.element.style.width = "200px";
+      this.element.style.height = "20px";
+      this.element.style.backgroundColor = "#444";
+      this.element.style.border = "1px solid #fff";
+      this.element.style.zIndex = "99";
+      this.bar = document.createElement("div");
+      this.bar.style.height = "100%";
+      this.bar.style.backgroundColor = "#ff0000";
+      this.element.appendChild(this.bar);
+    }
+    update() {
+      const percent = gameState.player.health / gameState.player.maxHealth * 100;
+      this.bar.style.width = `${percent}%`;
+      this.element.title = `Vida: ${gameState.player.health}/${gameState.player.maxHealth}`;
+    }
+  };
+
+  // src/GUI/Slot/index.ts
+  var Slot = class extends UIComponent {
+    item = null;
+    constructor(id) {
+      super(id, "inventory");
+      this.element.classList.add("slot");
+      this.element.style.position = "relative";
+      this.element.style.width = "30px";
+      this.element.style.height = "30px";
+      this.element.style.backgroundColor = "#555";
+      this.element.style.border = "2px solid #888";
+      this.element.style.display = "inline-block";
+      this.element.addEventListener("dragover", (e) => e.preventDefault());
+      this.element.addEventListener("drop", (e) => this.handleDrop(e));
+    }
+    handleDrop(e) {
+      e.preventDefault();
+      const itemId = e.dataTransfer?.getData("text/plain");
+      if (itemId && !this.item) {
+        this.item = gameState.config.items?.find((i) => i.id === itemId) || null;
+        if (this.item) {
+          this.element.innerHTML = `<div draggable="true" class="item" data-id="${this.item.id}">${this.item.name}</div>`;
+          this.element.querySelector(".item")?.addEventListener("dragstart", (e2) => this.handleDragStart(e2));
+          gameState.config.inventory = gameState.config.inventory?.filter((i) => i !== itemId) || [];
+        }
+      }
+    }
+    handleDragStart(e) {
+      if (this.item) {
+        e.dataTransfer?.setData("text/plain", this.item.id);
+        setTimeout(() => {
+          this.item = null;
+          this.element.innerHTML = "";
+        }, 0);
+      }
+    }
+    update(data) {
+    }
+  };
+
+  // src/GUI/Inventory/index.ts
+  var Inventory = class extends UIComponent {
+    slots = [];
+    itemArea;
+    constructor(id) {
+      super(id);
+      this.element.classList.add("inventory");
+      this.element.style.position = "absolute";
+      this.element.style.width = "33%";
+      this.element.style.top = "0";
+      this.element.style.right = "0";
+      this.element.style.bottom = "0";
+      this.element.style.backgroundColor = "#333";
+      this.element.style.padding = "10px";
+      this.itemArea = document.createElement("div");
+      this.itemArea.style.position = "absolute";
+      this.itemArea.style.right = "0";
+      this.itemArea.style.left = "0";
+      this.itemArea.style.bottom = "0";
+      this.itemArea.style.backgroundColor = "#222";
+      this.itemArea.style.opacity = "0.6";
+      this.itemArea.style.display = "grid";
+      this.itemArea.style.padding = "10px";
+      this.itemArea.style.gridTemplateColumns = "repeat(12, auto)";
+      this.itemArea.style.gridTemplateRows = "repeat(6, auto)";
+      this.itemArea.style.gap = "6px";
+      for (let i = 0; i < 72; i++) {
+        const slot = new Slot(`slot-${i}`);
+        this.slots.push(slot);
+        this.itemArea.appendChild(slot.getElement());
+      }
+      this.element.appendChild(this.itemArea);
+      this.render();
+    }
+    render() {
+      const inventoryItems = gameState.config.inventory || [];
+      inventoryItems.forEach((itemId, index) => {
+        const item = gameState.config.items?.find((i) => i.id === itemId);
+        if (item && this.slots[index] && !this.slots[index].item) {
+          this.slots[index].item = item;
+          this.slots[index].getElement().innerHTML = `<div draggable="true" class="item" data-id="${item.id}">${item.name}</div>`;
+          this.slots[index].getElement().querySelector(".item")?.addEventListener(
+            "dragstart",
+            (e) => this.slots[index].handleDragStart(e)
+          );
+        }
+      });
+    }
+    update(data) {
+      this.slots.forEach((slot) => slot.update(data));
+    }
+  };
+
+  // src/lib/ActorManager/index.ts
+  var ActorManager = class {
+    actors;
+    constructor() {
+      this.actors = /* @__PURE__ */ new Map();
+    }
+    addActor(actor, id) {
+      if (this.actors.has(id)) {
+        this.removeActor(id);
+      }
+      this.actors.set(id, actor);
+    }
+    removeActor(id) {
+      const actor = this.actors.get(id);
+      if (actor) this.actors.delete(id);
+    }
+    update(player, delta) {
+      this.actors.forEach((actor) => {
+        actor.update(player, delta);
+      });
+    }
+  };
+
+  // src/lib/GameScene/index.ts
+  var GameScene = class {
+    constructor(scene, world) {
+      this.scene = scene;
+      this.world = world;
+    }
+    _state = 0 /* PRELOAD */;
+    get state() {
+      return this._state;
+    }
+    async tunnelPreload() {
+      if (this._state !== 0 /* PRELOAD */) return;
+      this.preload();
+      this._state = 1 /* CREATE */;
+    }
+    async tunnelCreate() {
+      if (this._state !== 1 /* CREATE */) return;
+      this.create();
+      this._state = 2 /* UPDATE */;
+    }
+    async tunnelUpdate(delta) {
+      if (this._state !== 2 /* UPDATE */) return;
+      this.update(delta);
+    }
+    preload() {
+    }
+    create() {
+    }
+    update(delta) {
+    }
+  };
+
+  // src/lib/InputManager/index.ts
+  var InputManager = class _InputManager {
+    static _instance;
+    _keyState = {};
+    _mouseState = { x: 0, y: 0, buttons: {} };
+    _subscribers = /* @__PURE__ */ new Set();
+    constructor() {
+      this.initListeners();
+    }
+    static get instance() {
+      if (!this._instance) this._instance = new _InputManager();
+      return this._instance;
+    }
+    initListeners() {
+      window.addEventListener("keydown", (e) => this.updateKeyState(e, true));
+      window.addEventListener("keyup", (e) => this.updateKeyState(e, false));
+      window.addEventListener("mousemove", (e) => this.updateMousePosition(e));
+      window.addEventListener(
+        "mousedown",
+        (e) => this.updateMouseButton(e, true)
+      );
+      window.addEventListener("mouseup", (e) => this.updateMouseButton(e, false));
+    }
+    updateKeyState(event, state) {
+      this._keyState[event.code] = state;
+      this.notifySubscribers(event.code, state);
+    }
+    updateMousePosition(event) {
+      this._mouseState.x = event.clientX;
+      this._mouseState.y = event.clientY;
+    }
+    updateMouseButton(event, state) {
+      this._mouseState.buttons[event.button] = state;
+      this.notifySubscribers(`mouse_${event.button}`, state);
+    }
+    notifySubscribers(key, state) {
+      this._subscribers.forEach((callback) => callback(key, state));
+    }
+    subscribe(callback) {
+      this._subscribers.add(callback);
+    }
+    unsubscribe(callback) {
+      this._subscribers.delete(callback);
+    }
+    isKeyDown(key) {
+      return !!this._keyState[key];
+    }
+    isMouseButtonDown(button) {
+      return !!this._mouseState.buttons[button];
+    }
+    getMousePosition() {
+      return { x: this._mouseState.x, y: this._mouseState.y };
+    }
+  };
+
+  // src/lib/InputController/index.ts
+  var InputController = class {
+    constructor(player) {
+      this.player = player;
+      InputManager.instance.subscribe(this.onInput.bind(this));
+    }
+    onInput(key, state) {
+      switch (key) {
+        case "KeyA":
+          state ? this.player.walkLeftOn(this.player.attributes.movespeed) : this.player.walkLeftOff();
+          break;
+        case "KeyD":
+          state ? this.player.walkRightOn(this.player.attributes.movespeed) : this.player.walkRightOff();
+          break;
+        case "KeyW":
+          state ? this.player.walkUpOn(this.player.attributes.movespeed) : this.player.walkUpOff();
+          break;
+        case "KeyS":
+          state ? this.player.walkDownOn(this.player.attributes.movespeed) : this.player.walkDownOff();
+          break;
+      }
+    }
+    destroy() {
+      InputManager.instance.unsubscribe(this.onInput.bind(this));
+    }
+  };
+
+  // src/lib/Attributes/index.ts
+  var Attributes = class {
+    _baseMovespeed;
+    constructor() {
+      this._baseMovespeed = 25;
+    }
+    get movespeed() {
+      return this._baseMovespeed;
+    }
+  };
+
   // node_modules/three/examples/jsm/utils/BufferGeometryUtils.js
   function toTrianglesDrawMode(geometry, drawMode) {
     if (drawMode === TrianglesDrawMode) {
@@ -31979,406 +32310,6 @@ void main() {
     });
   }
 
-  // src/lib/Actor/index.ts
-  var Actor = class {
-    constructor(params) {
-      this.params = params;
-      this._name = params.name;
-      this._modelname = params.model;
-      this._path = this._modelname;
-      this._model = new Object3D();
-      this._size = new Vector3();
-      this._loader = new GLTFLoader();
-      this._loader.load(
-        this._path,
-        (gltf) => {
-          this._totalActions = gltf.animations.length;
-          this._model = gltf.scene;
-          this._model.matrixAutoUpdate = true;
-          new Box3().setFromObject(this._model).getSize(this._size);
-          this.params.scene.add(this._model);
-          this._mixer = new AnimationMixer(this._model);
-          this._body = new Body({
-            mass: 1,
-            shape: new Box(
-              new Vec3(this._size.x * 0.1, this._size.y * 0.5, this._size.z * 0.5)
-            ),
-            position: this.params.position,
-            velocity: new Vec3(0, 0, 0)
-          });
-          this._body.name = this.params.name;
-          this._body.fixedRotation = true;
-          this._body.angularDamping = 0.9;
-          this._body.updateMassProperties();
-          this.params.world.addBody(this._body);
-          gltf.animations.forEach((clip) => {
-            this._actions[clip.name] = this._mixer.clipAction(clip);
-            this._actionsLoaded += 1;
-            if (this._actionsLoaded >= this._totalActions) {
-              this._isActionsReady = true;
-            }
-          });
-        },
-        (event) => {
-          if (event.loaded >= event.total) {
-            this._isModelReady = true;
-          }
-        },
-        (err) => {
-          console.error("Erro ao carregar modelo:", err);
-        }
-      );
-    }
-    _name;
-    _modelname;
-    _model;
-    _path;
-    _size;
-    _mixer;
-    _body;
-    _actions = {};
-    _action = null;
-    _loader;
-    _isActorReady = false;
-    _isActionsReady = false;
-    _isModelReady = false;
-    _totalActions = 0;
-    _actionsLoaded = 0;
-    _lastRotationY = 0;
-    get body() {
-      return this._body;
-    }
-    get model() {
-      return this._model;
-    }
-    get actions() {
-      return this._actions;
-    }
-    get isReady() {
-      return this._isActorReady;
-    }
-    update(player, delta) {
-      if (this._isActorReady) {
-        if (this._mixer) this._mixer.update(delta);
-        this.align();
-        this.rotation();
-      } else {
-        if (this._isActionsReady && this._isModelReady) this._isActorReady = true;
-      }
-    }
-    align() {
-      this._model.position.copy(
-        new Vector3(
-          this._body.position.x,
-          this._body.position.y - this._size.y * 0.5,
-          this._body.position.z
-        )
-      );
-      this._model.quaternion.copy(
-        new Quaternion(
-          this._body.quaternion.x,
-          this._body.quaternion.y,
-          this._body.quaternion.z,
-          this._body.quaternion.w
-        )
-      );
-    }
-    rotation() {
-      if (this._body.velocity.x !== 0 || this._body.velocity.z !== 0) {
-        const targetRotation = Math.atan2(
-          this._body.velocity.x,
-          this._body.velocity.z
-        );
-        this._model.rotation.y = MathUtils.lerp(
-          this._model.rotation.y,
-          targetRotation,
-          1
-        );
-        this._lastRotationY = this._model.rotation.y;
-      } else {
-        this._model.rotation.y = this._lastRotationY;
-      }
-    }
-    playAnimation(name, timeScale) {
-      if (!this._isActorReady) return;
-      if (!this._actions[name]) {
-        console.warn(`A anima\xE7\xE3o "${name}" n\xE3o foi encontrada!`);
-        return;
-      }
-      if (this._action === this._actions[name]) return;
-      if (this._action) this._action.fadeOut(0.7);
-      this._action = this._actions[name];
-      this._action.reset().fadeIn(0.7).play();
-      this._action.timeScale = timeScale ? timeScale : 1;
-    }
-  };
-
-  // src/actors/ExempleOne.ts
-  var ExempleOne = class extends Actor {
-    inCombat = false;
-    detectionRange = 10;
-    attackRange = 1;
-    speed = 20;
-    attackCooldown = 0;
-    maxCooldown = 1;
-    chase(targetPosition) {
-      const direction = targetPosition.clone().sub(this.body.position).normalize();
-      this.body.velocity.set(
-        direction.x * this.speed,
-        this.body.velocity.y,
-        direction.z * this.speed
-      );
-    }
-    attack(player) {
-      this.attackCooldown = this.maxCooldown;
-      gameState.updatePlayerHealth(gameState.player.health - 10);
-      player.body.applyImpulse(new Vec3(2, 0, 2), player.body.position);
-    }
-    behaviour(player, delta) {
-      if (!player.body) return;
-      if (!this.body) return;
-      const playerPos = new Vector3().copy(player.body.position);
-      const mobPos = new Vector3().copy(this.body.position);
-      const distanceToPlayer = mobPos.distanceTo(playerPos);
-      this.attackCooldown = Math.max(0, this.attackCooldown - delta);
-      if (this.inCombat) {
-        if (distanceToPlayer >= 20) {
-          this.inCombat = false;
-          return;
-        }
-        if (distanceToPlayer <= this.attackRange) {
-          if (this.attackCooldown <= 0) {
-            this.attack(player);
-            this.playAnimation("punch_002");
-          } else {
-            this.playAnimation("idle_001");
-          }
-        } else {
-          this.chase(new Vector3().copy(player.body.position));
-          this.playAnimation("running");
-        }
-      } else {
-        if (distanceToPlayer <= this.detectionRange) {
-          this.inCombat = true;
-          return;
-        } else {
-          this.playAnimation("idle_001");
-        }
-      }
-    }
-    update(player, delta) {
-      super.update(player, delta);
-      this.behaviour(player, delta);
-    }
-  };
-
-  // src/directories.ts
-  var src = "src/";
-  var http = "/";
-  var resources = "/resources";
-  var folders = {
-    src: {
-      root: src,
-      actors: src + "actors/",
-      data: src + "data/",
-      helpers: src + "helpers/",
-      lib: src + "lib/",
-      scenes: src + "scenes/",
-      types: src + "types/"
-    },
-    http: {
-      root: http,
-      assets: {
-        root: http + "assets/",
-        models: http + "assets/models/",
-        images: http + "assets/images/"
-      },
-      icons: {
-        root: http + "icons/"
-      }
-    },
-    resources: {
-      root: resources,
-      assets: {
-        root: resources + "assets/",
-        models: resources + "assets/models/",
-        images: resources + "assets/images/"
-      },
-      icons: resources + "assets/icons/"
-    }
-  };
-  var enemy = `${folders.http.assets.models}enemy.glb`;
-  var dummy = `${folders.http.assets.models}dummy.glb`;
-
-  // src/lib/UI/UIComponent/index.ts
-  var UIComponent = class {
-    element;
-    container;
-    constructor(id, containerId = "ui-container") {
-      this.container = document.getElementById(containerId);
-      this.element = document.createElement("div");
-      this.element.id = id;
-      this.element.className = "ui-element";
-      this.container.appendChild(this.element);
-    }
-    destroy() {
-      this.container.removeChild(this.element);
-    }
-    getElement() {
-      return this.element;
-    }
-  };
-
-  // src/GUI/HealthBar/index.ts
-  var HealthBar = class extends UIComponent {
-    bar;
-    constructor(id) {
-      super(id);
-      this.element.style.top = "10px";
-      this.element.style.left = "10px";
-      this.element.style.width = "200px";
-      this.element.style.height = "20px";
-      this.element.style.backgroundColor = "#444";
-      this.element.style.border = "1px solid #fff";
-      this.element.style.zIndex = "99";
-      this.bar = document.createElement("div");
-      this.bar.style.height = "100%";
-      this.bar.style.backgroundColor = "#ff0000";
-      this.element.appendChild(this.bar);
-    }
-    update(delta) {
-      const percent = gameState.player.health / gameState.player.maxHealth * 100;
-      this.bar.style.width = `${percent}%`;
-      this.element.title = `Vida: ${gameState.player.health}/${gameState.player.maxHealth}`;
-    }
-  };
-
-  // src/lib/GameScene/index.ts
-  var GameScene = class {
-    constructor(scene, world) {
-      this.scene = scene;
-      this.world = world;
-    }
-    _state = 0 /* PRELOAD */;
-    actors = [];
-    get state() {
-      return this._state;
-    }
-    async tunnelPreload() {
-      if (this._state !== 0 /* PRELOAD */) return;
-      this.preload();
-      this._state = 1 /* CREATE */;
-    }
-    async tunnelCreate() {
-      if (this._state !== 1 /* CREATE */) return;
-      this.create();
-      this._state = 2 /* UPDATE */;
-    }
-    async tunnelUpdate(delta) {
-      if (this._state !== 2 /* UPDATE */) return;
-      this.update(delta);
-    }
-    preload() {
-    }
-    create() {
-    }
-    update(delta) {
-    }
-  };
-
-  // src/lib/InputManager/index.ts
-  var InputManager = class _InputManager {
-    static _instance;
-    _keyState = {};
-    _mouseState = { x: 0, y: 0, buttons: {} };
-    _subscribers = /* @__PURE__ */ new Set();
-    constructor() {
-      this.initListeners();
-    }
-    static get instance() {
-      if (!this._instance) this._instance = new _InputManager();
-      return this._instance;
-    }
-    initListeners() {
-      window.addEventListener("keydown", (e) => this.updateKeyState(e, true));
-      window.addEventListener("keyup", (e) => this.updateKeyState(e, false));
-      window.addEventListener("mousemove", (e) => this.updateMousePosition(e));
-      window.addEventListener(
-        "mousedown",
-        (e) => this.updateMouseButton(e, true)
-      );
-      window.addEventListener("mouseup", (e) => this.updateMouseButton(e, false));
-    }
-    updateKeyState(event, state) {
-      this._keyState[event.code] = state;
-      this.notifySubscribers(event.code, state);
-    }
-    updateMousePosition(event) {
-      this._mouseState.x = event.clientX;
-      this._mouseState.y = event.clientY;
-    }
-    updateMouseButton(event, state) {
-      this._mouseState.buttons[event.button] = state;
-      this.notifySubscribers(`mouse_${event.button}`, state);
-    }
-    notifySubscribers(key, state) {
-      this._subscribers.forEach((callback) => callback(key, state));
-    }
-    subscribe(callback) {
-      this._subscribers.add(callback);
-    }
-    unsubscribe(callback) {
-      this._subscribers.delete(callback);
-    }
-    isKeyDown(key) {
-      return !!this._keyState[key];
-    }
-    isMouseButtonDown(button) {
-      return !!this._mouseState.buttons[button];
-    }
-    getMousePosition() {
-      return { x: this._mouseState.x, y: this._mouseState.y };
-    }
-  };
-
-  // src/lib/InputController/index.ts
-  var InputController = class {
-    constructor(player) {
-      this.player = player;
-      InputManager.instance.subscribe(this.onInput.bind(this));
-    }
-    onInput(key, state) {
-      switch (key) {
-        case "KeyA":
-          state ? this.player.walkLeftOn(this.player.attributes.movespeed) : this.player.walkLeftOff();
-          break;
-        case "KeyD":
-          state ? this.player.walkRightOn(this.player.attributes.movespeed) : this.player.walkRightOff();
-          break;
-        case "KeyW":
-          state ? this.player.walkUpOn(this.player.attributes.movespeed) : this.player.walkUpOff();
-          break;
-        case "KeyS":
-          state ? this.player.walkDownOn(this.player.attributes.movespeed) : this.player.walkDownOff();
-          break;
-      }
-    }
-    destroy() {
-      InputManager.instance.unsubscribe(this.onInput.bind(this));
-    }
-  };
-
-  // src/lib/Attributes/index.ts
-  var Attributes = class {
-    _baseMovespeed;
-    constructor() {
-      this._baseMovespeed = 25;
-    }
-    get movespeed() {
-      return this._baseMovespeed;
-    }
-  };
-
   // src/lib/Entity/index.ts
   var Entity = class {
     constructor(params) {
@@ -32683,9 +32614,12 @@ void main() {
   var MainScene = class extends GameScene {
     terrain;
     player;
-    uimanager = new UIManager();
+    uiManager;
+    actorManager;
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
+      this.uiManager = new UIManager();
+      this.actorManager = new ActorManager();
       this.player = new Player({
         name: "player",
         model: dummy,
@@ -32694,27 +32628,17 @@ void main() {
         position: new Vec3(0, -3, 0)
       });
       this.player.preload();
-      this.uimanager.addComponent(new HealthBar("health-bar"), "health-bar");
+      this.uiManager.addComponent(new HealthBar("health-bar"), "health-bar");
+      this.uiManager.addComponent(new Inventory("inventory"), "inventory");
     }
     create() {
       new InputController(this.player);
-      this.actors.push(
-        new ExempleOne({
-          model: enemy,
-          name: "inimigo",
-          scene: this.scene,
-          world: this.world,
-          position: new Vec3(10, -3, 10)
-        })
-      );
     }
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
-      this.uimanager.update(delta);
-      this.actors.forEach((actor) => {
-        actor.update(this.player, delta);
-      });
+      this.uiManager.update(delta);
+      this.actorManager.update(this.player, delta);
     }
   };
 

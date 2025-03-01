@@ -4,7 +4,7 @@ body {
 }
 
 .ui-element {
-  pointer-events: auto; /* Reativa cliques apenas nos elementos */
+  pointer-events: auto;
   position: absolute;
   font-family: Arial, sans-serif;
 }
