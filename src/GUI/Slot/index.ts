@@ -8,8 +8,8 @@ export class Slot extends UIComponent {
     super(id, "inventory");
     this.element.classList.add("slot");
     this.element.style.position = "relative";
-    this.element.style.width = "30px";
-    this.element.style.height = "30px";
+    this.element.style.width = "34px";
+    this.element.style.height = "34px";
     this.element.style.backgroundColor = "#555";
     this.element.style.border = "2px solid #888";
     this.element.style.display = "inline-block";

@@ -29513,50 +29513,9 @@ void main() {
     }
   };
 
-  // src/GUI/Slot/index.ts
-  var Slot = class extends UIComponent {
-    item = null;
-    constructor(id) {
-      super(id, "inventory");
-      this.element.classList.add("slot");
-      this.element.style.position = "relative";
-      this.element.style.width = "30px";
-      this.element.style.height = "30px";
-      this.element.style.backgroundColor = "#555";
-      this.element.style.border = "2px solid #888";
-      this.element.style.display = "inline-block";
-      this.element.addEventListener("dragover", (e) => e.preventDefault());
-      this.element.addEventListener("drop", (e) => this.handleDrop(e));
-    }
-    handleDrop(e) {
-      e.preventDefault();
-      const itemId = e.dataTransfer?.getData("text/plain");
-      if (itemId && !this.item) {
-        this.item = gameState.config.items?.find((i) => i.id === itemId) || null;
-        if (this.item) {
-          this.element.innerHTML = `<div draggable="true" class="item" data-id="${this.item.id}">${this.item.name}</div>`;
-          this.element.querySelector(".item")?.addEventListener("dragstart", (e2) => this.handleDragStart(e2));
-          gameState.config.inventory = gameState.config.inventory?.filter((i) => i !== itemId) || [];
-        }
-      }
-    }
-    handleDragStart(e) {
-      if (this.item) {
-        e.dataTransfer?.setData("text/plain", this.item.id);
-        setTimeout(() => {
-          this.item = null;
-          this.element.innerHTML = "";
-        }, 0);
-      }
-    }
-    update(data) {
-    }
-  };
-
   // src/GUI/Inventory/index.ts
   var Inventory = class extends UIComponent {
     slots = [];
-    itemArea;
     constructor(id) {
       super(id);
       this.element.classList.add("inventory");
@@ -29566,26 +29525,6 @@ void main() {
       this.element.style.right = "0";
       this.element.style.bottom = "0";
       this.element.style.backgroundColor = "#333";
-      this.element.style.padding = "10px";
-      this.itemArea = document.createElement("div");
-      this.itemArea.style.position = "absolute";
-      this.itemArea.style.right = "0";
-      this.itemArea.style.left = "0";
-      this.itemArea.style.bottom = "0";
-      this.itemArea.style.backgroundColor = "#222";
-      this.itemArea.style.opacity = "0.6";
-      this.itemArea.style.display = "grid";
-      this.itemArea.style.padding = "10px";
-      this.itemArea.style.gridTemplateColumns = "repeat(12, auto)";
-      this.itemArea.style.gridTemplateRows = "repeat(6, auto)";
-      this.itemArea.style.gap = "6px";
-      for (let i = 0; i < 72; i++) {
-        const slot = new Slot(`slot-${i}`);
-        this.slots.push(slot);
-        this.itemArea.appendChild(slot.getElement());
-      }
-      this.element.appendChild(this.itemArea);
-      this.render();
     }
     render() {
       const inventoryItems = gameState.config.inventory || [];
