@@ -1,0 +1,106 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+.container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #44403c;
+}
+
+.frame {
+  width: 36%;
+  height: 70%;
+  position: absolute;
+  right: 15px;
+  top: 40%;
+  background: #44403c;
+  transform: translateY(-40%);
+  border: 2px solid #b0b0b0;
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 5% 56% 31% 8%;
+}
+
+.title {
+  background: rgb(0, 77, 64);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 77, 64, 1) 0%,
+    rgba(0, 37, 31, 1) 100%
+  );
+  color: white;
+  display: flex;
+  padding-left: 10px;
+  padding-right: 4px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10pt;
+}
+
+.close-button-inv {
+  background: rgb(255, 255, 255);
+  background: linear-gradient(
+    146deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(130, 90, 44, 1) 64%,
+    rgba(93, 63, 28, 1) 100%
+  );
+  width: 22px;
+  height: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.inside-btn {
+  background: rgb(255, 255, 255);
+  background: rgb(255, 255, 255);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(240, 186, 186, 1) 19%,
+    rgba(240, 128, 128, 1) 40%,
+    rgba(240, 128, 128, 1) 100%
+  );
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  grid-template-rows: 100%;
+}
+
+.stats {
+  background: lightgray;
+  box-shadow: 3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset;
+}
+
+.items {
+  background-color: lightgray;
+  box-shadow: 3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset;
+}
+
+.inventory-conaiter {
+  background: lightgray;
+  box-shadow: 3px 4px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.money {
+  background: lightgray;
+  box-shadow: 3px 4px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
