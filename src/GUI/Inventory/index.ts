@@ -4,7 +4,6 @@ import { Slot } from "../Slot";
 
 export class Inventory extends UIComponent {
   private slots: Slot[] = [];
-  private itemArea: HTMLElement;
 
   constructor(id: string) {
     super(id);
@@ -15,30 +14,26 @@ export class Inventory extends UIComponent {
     this.element.style.right = "0";
     this.element.style.bottom = "0";
     this.element.style.backgroundColor = "#333";
-    this.element.style.padding = "10px";
 
-    this.itemArea = document.createElement("div");
+    // this.itemArea = document.createElement("div");
+    // this.itemArea.style.height = "20%";
+    // this.itemArea.style.backgroundColor = "#F44336";
+    // this.itemArea.style.boxShadow = "inset 0 0 15px #F44336;";
 
-    this.itemArea.style.position = "absolute";
-    this.itemArea.style.right = "0";
-    this.itemArea.style.left = "0";
-    this.itemArea.style.bottom = "0";
-    this.itemArea.style.backgroundColor = "#222";
-    this.itemArea.style.opacity = "0.6";
-    this.itemArea.style.display = "grid";
-    this.itemArea.style.padding = "10px";
-    this.itemArea.style.gridTemplateColumns = "repeat(12, auto)";
-    this.itemArea.style.gridTemplateRows = "repeat(6, auto)";
-    this.itemArea.style.gap = "6px";
+    // this.itemArea.style.width = "100%";
+    // this.itemArea.style.display = "grid";
+    // this.itemArea.style.gridTemplateColumns = "repeat(18, 35px)";
+    // this.itemArea.style.gridTemplateRows = "repeat(5, 38px)";
 
-    for (let i = 0; i < 72; i++) {
-      const slot = new Slot(`slot-${i}`);
-      this.slots.push(slot);
-      this.itemArea.appendChild(slot.getElement());
-    }
+    // for (let i = 0; i < 90; i++) {
+    //   const slot = new Slot(`slot-${i}`);
+    //   this.slots.push(slot);
+    //   this.itemArea.appendChild(slot.getElement());
+    // }
 
-    this.element.appendChild(this.itemArea);
-    this.render();
+    // this.element.appendChild(title);
+    // this.element.appendChild(this.itemArea);
+    // this.render();
   }
 
   render() {
