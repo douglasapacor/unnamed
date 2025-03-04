@@ -4,12 +4,12 @@ import { UIComponent } from "../../lib/UI/UIComponent";
 export class Slot extends UIComponent {
   item: { id: string; name: string } | null = null;
 
-  constructor(id: string) {
+  constructor(id: string, w: number, h: number) {
     super(id, "inventory");
     this.element.classList.add("slot");
     this.element.style.position = "relative";
-    this.element.style.width = "34px";
-    this.element.style.height = "34px";
+    this.element.style.width = `${w - 2}px`;
+    this.element.style.height = `${h - 2}px`;
     this.element.style.backgroundColor = "#555";
     this.element.style.border = "2px solid #888";
     this.element.style.display = "inline-block";
