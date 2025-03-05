@@ -3,11 +3,11 @@ import { BtnClose } from "./BtnClose";
 import { gui } from "./type";
 
 export abstract class GUI {
-  protected _container: HTMLElement;
-  protected _element: HTMLElement;
-  protected _title: HTMLElement;
-  protected _titleText: HTMLElement;
-  protected _content: HTMLElement;
+  private _container: HTMLElement;
+  private _element: HTMLElement;
+  private _title: HTMLElement;
+  private _titleText: HTMLElement;
+  private _content: HTMLElement;
   private _closeBtn: BtnClose;
 
   constructor(id: string, config: gui) {
@@ -17,7 +17,7 @@ export abstract class GUI {
     this._titleText = document.createElement("span");
     this._content = document.createElement("div");
 
-    const idtitle = `titleContainer${generateKey(9)}`;
+    const idtitle = `TitleContainer${generateKey(9)}`;
 
     this._title.id = idtitle;
     this._title.style.position = "relative";
@@ -50,6 +50,7 @@ export abstract class GUI {
     if (config.transform) this._element.style.transform = config.transform;
 
     this._content.style.display = "grid";
+    this._content.id = `content${id}`;
 
     this._title.appendChild(this._titleText);
     this._element.appendChild(this._title);

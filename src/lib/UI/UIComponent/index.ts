@@ -3,11 +3,11 @@ export abstract class UIComponent {
   protected _element: HTMLElement;
 
   constructor(id: string, containerId: string) {
-    this._container = document.getElementById(containerId)!;
+    this._container = document.getElementById(`content${containerId}`)!;
     this._element = document.createElement("div");
     this._element.id = id;
     this._element.style.pointerEvents = "auto";
-    this._element.style.position = "absolute";
+    this._element.style.position = "relative";
     this._element.style.fontFamily = "Arial, sans-serif";
     this._container.appendChild(this._element);
   }

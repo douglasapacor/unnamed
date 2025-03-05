@@ -29621,7 +29621,7 @@ void main() {
       this._title = document.createElement("div");
       this._titleText = document.createElement("span");
       this._content = document.createElement("div");
-      const idtitle = `titleContainer${generateKey(9)}`;
+      const idtitle = `TitleContainer${generateKey(9)}`;
       this._title.id = idtitle;
       this._title.style.position = "relative";
       this._title.style.color = "white";
@@ -29648,6 +29648,7 @@ void main() {
       if (config2.left) this._element.style.left = config2.left;
       if (config2.transform) this._element.style.transform = config2.transform;
       this._content.style.display = "grid";
+      this._content.id = `content${id}`;
       this._title.appendChild(this._titleText);
       this._element.appendChild(this._title);
       this._element.appendChild(this._content);
@@ -29668,6 +29669,57 @@ void main() {
     }
   };
 
+  // src/lib/UI/UIComponent/index.ts
+  var UIComponent = class {
+    _container;
+    _element;
+    constructor(id, containerId) {
+      this._container = document.getElementById(`content${containerId}`);
+      this._element = document.createElement("div");
+      this._element.id = id;
+      this._element.style.pointerEvents = "auto";
+      this._element.style.position = "relative";
+      this._element.style.fontFamily = "Arial, sans-serif";
+      this._container.appendChild(this._element);
+    }
+    get element() {
+      return this._element;
+    }
+    destroy() {
+      this._container.removeChild(this._element);
+    }
+    add(node) {
+      this._element.appendChild(node);
+    }
+  };
+
+  // src/GUI/Inventory/Character.ts
+  var Character = class extends UIComponent {
+    constructor(containerId) {
+      super("InventoryCharacter", containerId);
+    }
+    update(delta) {
+    }
+  };
+
+  // src/GUI/Inventory/Grid.ts
+  var Grid = class extends UIComponent {
+    constructor(containerId) {
+      super("InventoryGrid", containerId);
+    }
+    update(delta) {
+    }
+  };
+
+  // src/GUI/Inventory/Money.ts
+  var Money = class extends UIComponent {
+    constructor(containerId) {
+      super("InventoryMoney", containerId);
+    }
+    update(delta) {
+    }
+  };
+
   // src/GUI/Inventory/index.ts
   var config = {
     label: "INVENT\xC0RIO",
@@ -29683,8 +29735,16 @@ void main() {
     money;
     constructor(id) {
       super(id, config);
+      this.character = new Character(id);
+      this.grid = new Grid(id);
+      this.money = new Money(id);
+      this.content.style.gridTemplateColumns = "100%";
+      this.content.style.gridTemplateRows = "50% 40% 10%";
     }
     update(delta) {
+      this.character.update(delta);
+      this.grid.update(delta);
+      this.money.update(delta);
     }
   };
 
