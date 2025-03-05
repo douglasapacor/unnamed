@@ -82,6 +82,9 @@
   background: lightgray;
   box-shadow: 3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #Grid {
@@ -113,4 +116,26 @@
   position: relative;
   box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
     rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+
+#Equip {
+  width: 94%;
+  height: 94%;
+  border-radius: 2px;
+  display: grid;
+  grid-template-columns: 20% 60% 20%;
+  grid-template-rows: 100%;
+}
+
+.char-equip-column {
+  position: relative;
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: repeat(5, 20%);
+}
+
+.equip-item {
+  position: relative;
+  background-color: #555;
+  border: 2px solid #888;
 }

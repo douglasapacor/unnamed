@@ -29555,12 +29555,162 @@ void main() {
     }
   };
 
-  // src/GUI/Inventory/CharEquipament.ts
-  var CharEquipament = class extends UIComponent {
+  // src/GUI/Inventory/CenterItem.ts
+  var CenterItem = class extends UIComponent {
     constructor(containerId) {
-      super("CharEquipament", containerId);
+      super("CenterITem", containerId);
+      this.element.style.position = "relative";
     }
     update(delta) {
+    }
+  };
+
+  // src/helpers/random/base.ts
+  var lowerAlphabet = [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "x",
+    "w",
+    "y",
+    "z"
+  ];
+  var upperAlphabet = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "X",
+    "W",
+    "Y",
+    "Z"
+  ];
+  var commomNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
+  // src/helpers/random/implementation.ts
+  var generateRandomRangeNumber = (min, max) => {
+    return parseInt(`${Math.random() * (max - min) + min}`);
+  };
+  var generateKey = (keySize) => {
+    let newKey = "";
+    let rounds = 26;
+    if (keySize) rounds = keySize;
+    for (let i = 0; i < rounds; i++) {
+      const typeCharacter = generateRandomRangeNumber(0, 3);
+      if (typeCharacter === 0) {
+        const indexCharacters = generateRandomRangeNumber(
+          0,
+          lowerAlphabet.length
+        );
+        newKey += lowerAlphabet[indexCharacters];
+      }
+      if (typeCharacter === 1) {
+        const indexCharacters = generateRandomRangeNumber(
+          0,
+          upperAlphabet.length
+        );
+        newKey += upperAlphabet[indexCharacters];
+      }
+      if (typeCharacter === 2) {
+        const indexCharacters = generateRandomRangeNumber(
+          0,
+          commomNumbers.length
+        );
+        newKey += commomNumbers[indexCharacters];
+      }
+    }
+    return newKey;
+  };
+
+  // src/GUI/Inventory/SideItems.ts
+  var SideItems = class extends UIComponent {
+    slot01 = document.createElement("div");
+    slot02 = document.createElement("div");
+    slot03 = document.createElement("div");
+    slot04 = document.createElement("div");
+    slot05 = document.createElement("div");
+    constructor(containerId) {
+      super(`${generateKey(5)}SideItem`, containerId);
+      this.element.classList.add("char-equip-column");
+      this.slot01.classList.add("equip-item");
+      this.element.appendChild(this.slot01);
+      this.slot02.classList.add("equip-item");
+      this.element.appendChild(this.slot02);
+      this.slot03.classList.add("equip-item");
+      this.element.appendChild(this.slot03);
+      this.slot04.classList.add("equip-item");
+      this.element.appendChild(this.slot04);
+      this.slot05.classList.add("equip-item");
+      this.element.appendChild(this.slot05);
+    }
+    update(delta) {
+    }
+  };
+
+  // src/GUI/Inventory/Equip.ts
+  var Equip = class extends UIComponent {
+    left;
+    center;
+    right;
+    constructor(containerId) {
+      super("Equip", containerId);
+      this.left = new SideItems("Equip");
+      this.center = new CenterItem("Equip");
+      this.right = new SideItems("Equip");
+    }
+    update(delta) {
+      this.left.update(delta);
+      this.center.update(delta);
+      this.right.update(delta);
+    }
+  };
+
+  // src/GUI/Inventory/CharEquipament.ts
+  var CharEquipament = class extends UIComponent {
+    equip;
+    constructor(containerId) {
+      super("CharEquipament", containerId);
+      this.equip = new Equip("CharEquipament");
+    }
+    update(delta) {
+      this.equip.update(delta);
     }
   };
 

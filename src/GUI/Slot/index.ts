@@ -13,17 +13,19 @@ export class Slot extends UIComponent {
     this.element.style.border = "2px solid #888";
     this.element.style.display = "inline-block";
 
-    // Configura o slot como alvo de drop
     this.element.addEventListener("dragover", (e) => e.preventDefault());
     this.element.addEventListener("drop", (e) => this.handleDrop(e));
   }
 
   handleDrop(e: DragEvent) {
     e.preventDefault();
+
     const itemId = e.dataTransfer?.getData("text/plain");
+
     if (itemId && !this.item) {
       this.item =
         gameState.config.items?.find((i: any) => i.id === itemId) || null;
+
       if (this.item) {
         this.element.innerHTML = `<div draggable="true" class="item" data-id="${this.item.id}">${this.item.name}</div>`;
         this.element
