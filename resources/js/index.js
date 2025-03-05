@@ -29470,101 +29470,6 @@ void main() {
   var enemy = `${folders.http.assets.models}enemy.glb`;
   var dummy = `${folders.http.assets.models}dummy.glb`;
 
-  // src/lib/UI/UIComponent/index.ts
-  var UIComponent = class {
-    element;
-    container;
-    constructor(id, containerId = "ui-container") {
-      this.container = document.getElementById(containerId);
-      this.element = document.createElement("div");
-      this.element.id = id;
-      this.element.className = "ui-element";
-      this.container.appendChild(this.element);
-    }
-    destroy() {
-      this.container.removeChild(this.element);
-    }
-    getElement() {
-      return this.element;
-    }
-    append(node) {
-      this.element.appendChild(node);
-    }
-  };
-
-  // src/GUI/HealthBar/index.ts
-  var HealthBar = class extends UIComponent {
-    bar;
-    constructor(id) {
-      super(id);
-      this.element.style.top = "10px";
-      this.element.style.left = "10px";
-      this.element.style.width = "200px";
-      this.element.style.height = "20px";
-      this.element.style.backgroundColor = "#444";
-      this.element.style.border = "1px solid #fff";
-      this.element.style.zIndex = "99";
-      this.bar = document.createElement("div");
-      this.bar.style.height = "100%";
-      this.bar.style.backgroundColor = "#ff0000";
-      this.element.appendChild(this.bar);
-    }
-    update() {
-      const percent = gameState.player.health / gameState.player.maxHealth * 100;
-      this.bar.style.width = `${percent}%`;
-      this.element.title = `Vida: ${gameState.player.health}/${gameState.player.maxHealth}`;
-    }
-  };
-
-  // src/GUI/Slot/index.ts
-  var Slot = class extends UIComponent {
-    item = null;
-    constructor(id, w, h) {
-      super(id);
-      this.element.style.position = "relative";
-      this.element.style.width = `${w - 2}px`;
-      this.element.style.height = `${h - 2}px`;
-      this.element.style.backgroundColor = "#555";
-      this.element.style.border = "2px solid #888";
-      this.element.style.display = "inline-block";
-      this.element.addEventListener("dragover", (e) => e.preventDefault());
-      this.element.addEventListener("drop", (e) => this.handleDrop(e));
-    }
-    handleDrop(e) {
-      e.preventDefault();
-      const itemId = e.dataTransfer?.getData("text/plain");
-      if (itemId && !this.item) {
-        this.item = gameState.config.items?.find((i) => i.id === itemId) || null;
-        if (this.item) {
-          this.element.innerHTML = `<div draggable="true" class="item" data-id="${this.item.id}">${this.item.name}</div>`;
-          this.element.querySelector(".item")?.addEventListener("dragstart", (e2) => this.handleDragStart(e2));
-          gameState.config.inventory = gameState.config.inventory?.filter((i) => i !== itemId) || [];
-        }
-      }
-    }
-    handleDragStart(e) {
-      if (this.item) {
-        e.dataTransfer?.setData("text/plain", this.item.id);
-        setTimeout(() => {
-          this.item = null;
-          this.element.innerHTML = "";
-        }, 0);
-      }
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/CenterItem.ts
-  var CenterItem = class extends UIComponent {
-    constructor(containerId) {
-      super("CenterITem", containerId);
-      this.element.style.position = "relative";
-    }
-    update(delta) {
-    }
-  };
-
   // src/helpers/random/base.ts
   var lowerAlphabet = [
     "a",
@@ -29659,223 +29564,127 @@ void main() {
     return newKey;
   };
 
-  // src/GUI/Inventory/SideItems.ts
-  var SideItems = class extends UIComponent {
-    slot01 = document.createElement("div");
-    slot02 = document.createElement("div");
-    slot03 = document.createElement("div");
-    slot04 = document.createElement("div");
-    slot05 = document.createElement("div");
-    constructor(containerId) {
-      super(`${generateKey(5)}SideItem`, containerId);
-      this.element.classList.add("char-equip-column");
-      this.slot01.classList.add("equip-item");
-      this.element.appendChild(this.slot01);
-      this.slot02.classList.add("equip-item");
-      this.element.appendChild(this.slot02);
-      this.slot03.classList.add("equip-item");
-      this.element.appendChild(this.slot03);
-      this.slot04.classList.add("equip-item");
-      this.element.appendChild(this.slot04);
-      this.slot05.classList.add("equip-item");
-      this.element.appendChild(this.slot05);
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/Equip.ts
-  var Equip = class extends UIComponent {
-    left;
-    center;
-    right;
-    constructor(containerId) {
-      super("Equip", containerId);
-      this.left = new SideItems("Equip");
-      this.center = new CenterItem("Equip");
-      this.right = new SideItems("Equip");
-    }
-    update(delta) {
-      this.left.update(delta);
-      this.center.update(delta);
-      this.right.update(delta);
-    }
-  };
-
-  // src/GUI/Inventory/CharEquipament.ts
-  var CharEquipament = class extends UIComponent {
-    equip;
-    constructor(containerId) {
-      super("CharEquipament", containerId);
-      this.equip = new Equip("CharEquipament");
-    }
-    update(delta) {
-      this.equip.update(delta);
-    }
-  };
-
-  // src/GUI/Inventory/Stat.ts
-  var Stat = class extends UIComponent {
-    attribute = document.createElement("span");
-    showvalue = document.createElement("span");
-    constructor(name, label, containerId) {
-      super(`${name}Stat`, containerId);
-      this.element.classList.add("attribute-plate");
-      this.attribute.innerText = label;
-      this.showvalue.style.fontSize = "10pt";
-      this.element.appendChild(this.attribute);
-      this.element.appendChild(this.showvalue);
-    }
-    set val(val) {
-      this.showvalue.innerText = val;
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/CharStats.ts
-  var CharStats = class extends UIComponent {
-    intelligenceStatus;
-    strengthStatus;
-    dexterityStatus;
-    constructor(containerId) {
-      super("CharStats", containerId);
-      this.intelligenceStatus = new Stat(
-        "Intelligence",
-        "Inteligence",
-        "CharStats"
-      );
-      this.strengthStatus = new Stat("Dexterity", "Dexterity", "CharStats");
-      this.dexterityStatus = new Stat("Strength", "Strength", "CharStats");
-      this.intelligenceStatus.val = "300";
-      this.dexterityStatus.val = "300";
-      this.strengthStatus.val = "300";
-    }
-    update(delta) {
-      this.intelligenceStatus.update(delta);
-      this.strengthStatus.update(delta);
-      this.dexterityStatus.update(delta);
-    }
-  };
-
-  // src/GUI/Inventory/Character.ts
-  var Character = class extends UIComponent {
-    charStats;
-    charEquipaments;
-    constructor(containerId) {
-      super("Character", containerId);
-      this.charEquipaments = new CharEquipament("Character");
-      this.charStats = new CharStats("Character");
-    }
-    update(delta) {
-      this.charStats.update(delta);
-      this.charEquipaments.update(delta);
-    }
-  };
-
-  // src/GUI/Inventory/Grid.ts
-  var Grid = class extends UIComponent {
-    frame = document.createElement("div");
-    constructor(containerId) {
-      super("Grid", containerId);
-      this.frame.style.width = "97%";
-      this.frame.style.height = "93%";
-      this.element.appendChild(this.frame);
-      this.frame.id = "GridFrame";
-      this.frame.style.display = "grid";
-      this.frame.style.gridTemplateColumns = `repeat(16, ${this.frame.clientWidth / 16}px)`;
-      this.frame.style.gridTemplateRows = `repeat(5, ${this.frame.clientHeight / 5}px)`;
-    }
-    update(delta) {
-    }
-    addSlot(node) {
-      this.frame.appendChild(node);
-    }
-    get widthFrame() {
-      return this.frame.clientWidth / 16;
-    }
-    get heigthFrame() {
-      return this.frame.clientHeight / 5;
-    }
-  };
-
-  // src/GUI/Inventory/Money.ts
-  var Money = class extends UIComponent {
-    constructor(containerId) {
-      super("Money", containerId);
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/Title.ts
-  var Title = class extends UIComponent {
-    frame = document.createElement("div");
-    button = document.createElement("div");
-    text = document.createElement("span");
-    click = () => {
+  // src/lib/UI/GUI/BtnClose.ts
+  var BtnClose = class {
+    _element;
+    _container;
+    _internal;
+    _text;
+    onclose = () => {
     };
     constructor(containerId) {
-      super("Title", containerId);
-      this.frame.id = "Frame";
-      this.frame.onclick = this.click;
-      this.button.id = "Bttn";
-      this.button.innerText = "X";
-      this.text.id = "Text";
-      this.text.innerText = "INVENT\xC1RIO";
-      this.button.appendChild(this.text);
-      this.frame.appendChild(this.button);
-      this.element.appendChild(this.text);
-      this.element.appendChild(this.frame);
+      this._container = document.getElementById(containerId);
+      this._element = document.createElement("div");
+      this._internal = document.createElement("div");
+      this._text = document.createElement("span");
+      this._text.innerText = "X";
+      this._element.style.width = "22px";
+      this._element.style.height = "60%";
+      this._element.style.display = "flex";
+      this._element.style.alignItems = "center";
+      this._element.style.justifyContent = "center";
+      this._element.style.cursor = "pointer";
+      this._element.style.marginRight = "6px";
+      this._element.style.background = "linear-gradient(145deg,rgba(255, 255, 255, 1) 0%,rgba(130, 90, 44, 1) 64%,rgba(93, 63, 28, 1) 100%)";
+      this._internal.style.width = "80%";
+      this._internal.style.height = "80%";
+      this._internal.style.display = "flex";
+      this._internal.style.alignItems = "center";
+      this._internal.style.justifyContent = "center";
+      this._internal.style.background = "linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(240, 186, 186, 1) 19%, rgba(240, 128, 128, 1) 40%, rgb(183, 28, 28) 100%)";
+      this._internal.appendChild(this._text);
+      this._element.appendChild(this._internal);
+      this._container.appendChild(this._element);
+      this._element.onclick = () => {
+        this.onclose();
+      };
     }
-    update(delta) {
+    get element() {
+      return this._element;
+    }
+    destroy() {
+      this._container.removeChild(this._element);
+    }
+  };
+
+  // src/lib/UI/GUI/index.ts
+  var GUI = class {
+    _container;
+    _element;
+    _title;
+    _titleText;
+    _content;
+    _closeBtn;
+    constructor(id, config2) {
+      this._container = document.getElementById("ui-container");
+      this._element = document.createElement("div");
+      this._title = document.createElement("div");
+      this._titleText = document.createElement("span");
+      this._content = document.createElement("div");
+      const idtitle = `titleContainer${generateKey(9)}`;
+      this._title.id = idtitle;
+      this._title.style.position = "relative";
+      this._title.style.color = "white";
+      this._title.style.display = "flex";
+      this._title.style.alignItems = "center";
+      this._title.style.justifyContent = "space-between";
+      this._title.style.background = "linear-gradient(90deg,rgba(89, 185, 173, 1) 0%,rgba(0, 105, 92, 1) 22%,rgba(0, 77, 64, 1) 39%,rgba(0, 5, 4, 1) 61%)";
+      this._titleText.innerText = config2.label;
+      this._titleText.style.marginLeft = "15px";
+      this._element.id = id;
+      this._element.style.width = config2.width;
+      this._element.style.height = config2.height;
+      this._element.style.pointerEvents = "auto";
+      this._element.style.position = "absolute";
+      this._element.style.fontFamily = "Arial, sans-serif";
+      this._element.style.background = "#44403c";
+      this._element.style.border = "2px solid #b0b0b0";
+      this._element.style.display = "grid";
+      this._element.style.gridTemplateColumns = "100%";
+      this._element.style.gridTemplateRows = "5% 95%";
+      if (config2.top) this._element.style.top = config2.top;
+      if (config2.bottom) this._element.style.bottom = config2.bottom;
+      if (config2.right) this._element.style.right = config2.right;
+      if (config2.left) this._element.style.left = config2.left;
+      if (config2.transform) this._element.style.transform = config2.transform;
+      this._content.style.display = "grid";
+      this._title.appendChild(this._titleText);
+      this._element.appendChild(this._title);
+      this._element.appendChild(this._content);
+      this._container.appendChild(this._element);
+      this._closeBtn = new BtnClose(idtitle);
+      this._closeBtn.onclose = () => {
+        this._element.style.display = "none";
+      };
+    }
+    get content() {
+      return this._content;
+    }
+    destroy() {
+      this._container.removeChild(this._element);
+    }
+    add(node) {
+      this._content.appendChild(node);
     }
   };
 
   // src/GUI/Inventory/index.ts
-  var Inventory = class extends UIComponent {
-    title;
-    char;
+  var config = {
+    label: "INVENT\xC0RIO",
+    width: "36%",
+    height: "70%",
+    right: "15px",
+    top: "40%",
+    transform: "translateY(-40%)"
+  };
+  var Inventory = class extends GUI {
+    character;
     grid;
     money;
-    slots = [];
     constructor(id) {
-      super(id);
-      this.title = new Title(id);
-      this.char = new Character(id);
-      this.grid = new Grid(id);
-      this.money = new Money(id);
-      for (let i = 0; i < 80; i++) {
-        const slot = new Slot(
-          `slot-${i}`,
-          this.grid.widthFrame,
-          this.grid.heigthFrame
-        );
-        this.slots.push(slot);
-        this.grid.addSlot(slot.getElement());
-      }
-      this.render();
-    }
-    render() {
-      const inventoryItems = gameState.config.inventory || [];
-      inventoryItems.forEach((itemId, index) => {
-        const item = gameState.config.items?.find((i) => i.id === itemId);
-        if (item && this.slots[index] && !this.slots[index].item) {
-          this.slots[index].item = item;
-          this.slots[index].getElement().innerHTML = `<div draggable="true" class="item" data-id="${item.id}">${item.name}</div>`;
-          this.slots[index].getElement().querySelector(".item")?.addEventListener(
-            "dragstart",
-            (e) => this.slots[index].handleDragStart(e)
-          );
-        }
-      });
+      super(id, config);
     }
     update(delta) {
-      this.title.update(delta);
-      this.char.update(delta);
-      this.grid.update(delta);
-      this.money.update(delta);
-      this.slots.forEach((slot) => slot.update(delta));
     }
   };
 
@@ -32857,28 +32666,28 @@ void main() {
     }
   };
 
-  // src/lib/UI/UIManager/UIManager.ts
-  var UIManager = class {
-    components;
+  // src/lib/UI/UIManager/GUIManager.ts
+  var GUIManager = class {
+    guis;
     constructor() {
-      this.components = /* @__PURE__ */ new Map();
+      this.guis = /* @__PURE__ */ new Map();
     }
-    addComponent(component, id) {
-      if (this.components.has(id)) {
+    addGui(gui, id) {
+      if (this.guis.has(id)) {
         this.removeComponent(id);
       }
-      this.components.set(id, component);
+      this.guis.set(id, gui);
     }
     removeComponent(id) {
-      const component = this.components.get(id);
-      if (component) {
-        component.destroy();
-        this.components.delete(id);
+      const gui = this.guis.get(id);
+      if (gui) {
+        gui.destroy();
+        this.guis.delete(id);
       }
     }
     update(delta) {
-      this.components.forEach((component) => {
-        component.update(delta);
+      this.guis.forEach((gui) => {
+        gui.update(delta);
       });
     }
   };
@@ -32887,11 +32696,11 @@ void main() {
   var MainScene = class extends GameScene {
     terrain;
     player;
-    uiManager;
+    guiManager;
     actorManager;
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
-      this.uiManager = new UIManager();
+      this.guiManager = new GUIManager();
       this.actorManager = new ActorManager();
       this.player = new Player({
         name: "player",
@@ -32901,8 +32710,7 @@ void main() {
         position: new Vec3(0, -3, 0)
       });
       this.player.preload();
-      this.uiManager.addComponent(new HealthBar("health-bar"), "health-bar");
-      this.uiManager.addComponent(new Inventory("Inventory"), "inventory");
+      this.guiManager.addGui(new Inventory("Inv"), "inventory");
     }
     create() {
       new InputController(this.player);
@@ -32910,7 +32718,7 @@ void main() {
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
-      this.uiManager.update(delta);
+      this.guiManager.update(delta);
       this.actorManager.update(this.player, delta);
     }
   };

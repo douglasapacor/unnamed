@@ -1,26 +1,28 @@
 export abstract class UIComponent {
-  protected element: HTMLElement;
-  protected container: HTMLElement;
+  protected _container: HTMLElement;
+  protected _element: HTMLElement;
 
-  constructor(id: string, containerId: string = "ui-container") {
-    this.container = document.getElementById(containerId)!;
-    this.element = document.createElement("div");
-    this.element.id = id;
-    this.element.className = "ui-element";
-    this.container.appendChild(this.element);
+  constructor(id: string, containerId: string) {
+    this._container = document.getElementById(containerId)!;
+    this._element = document.createElement("div");
+    this._element.id = id;
+    this._element.style.pointerEvents = "auto";
+    this._element.style.position = "absolute";
+    this._element.style.fontFamily = "Arial, sans-serif";
+    this._container.appendChild(this._element);
+  }
+
+  get element(): HTMLElement {
+    return this._element;
   }
 
   abstract update(delta: number): void;
 
-  public destroy() {
-    this.container.removeChild(this.element);
+  destroy() {
+    this._container.removeChild(this._element);
   }
 
-  public getElement(): HTMLElement {
-    return this.element;
-  }
-
-  public append(node: Node): void {
-    this.element.appendChild(node);
+  add(node: Node): void {
+    this._element.appendChild(node);
   }
 }

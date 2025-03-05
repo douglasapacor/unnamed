@@ -2,9 +2,3 @@ body {
   margin: 0;
   overflow: hidden;
 }
-
-.ui-element {
-  pointer-events: auto;
-  position: absolute;
-  font-family: Arial, sans-serif;
-}
