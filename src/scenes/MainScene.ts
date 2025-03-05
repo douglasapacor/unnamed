@@ -30,7 +30,7 @@ export default class MainScene extends GameScene {
     this.player.preload();
 
     this.uiManager.addComponent(new HealthBar("health-bar"), "health-bar");
-    this.uiManager.addComponent(new Inventory("inventory"), "inventory");
+    this.uiManager.addComponent(new Inventory("Inventory"), "inventory");
   }
 
   public override create(): void {

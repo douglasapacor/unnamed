@@ -5,8 +5,7 @@ export class Slot extends UIComponent {
   item: { id: string; name: string } | null = null;
 
   constructor(id: string, w: number, h: number) {
-    super(id, "inventory");
-    this.element.classList.add("slot");
+    super(id);
     this.element.style.position = "relative";
     this.element.style.width = `${w - 2}px`;
     this.element.style.height = `${h - 2}px`;
@@ -46,7 +45,7 @@ export class Slot extends UIComponent {
     }
   }
 
-  update(data: any) {
+  update(delta: number) {
     // Pode ser expandido para atualizar visualmente com base no estado
   }
 }

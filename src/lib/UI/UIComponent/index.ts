@@ -19,4 +19,8 @@ export abstract class UIComponent {
   public getElement(): HTMLElement {
     return this.element;
   }
+
+  public append(node: Node): void {
+    this.element.appendChild(node);
+  }
 }
