@@ -4,8 +4,8 @@ import { UIComponent } from "../../lib/UI/UIComponent";
 export class Slot extends UIComponent {
   item: { id: string; name: string } | null = null;
 
-  constructor(id: string, w: number, h: number) {
-    super(id);
+  constructor(id: string, w: number, h: number, containerId: string) {
+    super(id, containerId);
     this.element.style.position = "relative";
     this.element.style.width = `${w - 2}px`;
     this.element.style.height = `${h - 2}px`;
