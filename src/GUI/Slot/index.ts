@@ -13,6 +13,21 @@ export class Slot extends UIComponent {
     this.element.style.border = "2px solid #888";
     this.element.style.display = "inline-block";
 
+    switch (id) {
+      case "slot-0":
+        this.element.style.borderRadius = "5px 0px 0px 0px";
+        break;
+      case "slot-11":
+        this.element.style.borderRadius = "0px 5px 0px 0px";
+        break;
+      case "slot-71":
+        this.element.style.borderRadius = "0px 0px 5px 0px";
+        break;
+      case "slot-60":
+        this.element.style.borderRadius = "0px 0px 0px 5px";
+        break;
+    }
+
     this.element.addEventListener("dragover", (e) => e.preventDefault());
     this.element.addEventListener("drop", (e) => this.handleDrop(e));
   }
@@ -47,7 +62,5 @@ export class Slot extends UIComponent {
     }
   }
 
-  update(delta: number) {
-    // Pode ser expandido para atualizar visualmente com base no estado
-  }
+  update(delta: number) {}
 }

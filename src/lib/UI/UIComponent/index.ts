@@ -1,9 +1,9 @@
 export abstract class UIComponent {
-  protected _container: HTMLElement;
-  protected _element: HTMLElement;
+  private _container: HTMLElement;
+  private _element: HTMLElement;
 
   constructor(id: string, containerId: string) {
-    this._container = document.getElementById(`content${containerId}`)!;
+    this._container = document.getElementById(containerId)!;
     this._element = document.createElement("div");
     this._element.id = id;
     this._element.style.pointerEvents = "auto";

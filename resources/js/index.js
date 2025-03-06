@@ -29674,7 +29674,7 @@ void main() {
     _container;
     _element;
     constructor(id, containerId) {
-      this._container = document.getElementById(`content${containerId}`);
+      this._container = document.getElementById(containerId);
       this._element = document.createElement("div");
       this._element.id = id;
       this._element.style.pointerEvents = "auto";
@@ -29698,18 +29698,18 @@ void main() {
     equipament;
     stats;
     constructor(containerId) {
-      super("InventoryCharacter", containerId);
-      this._element.style.display = "grid";
-      this._element.style.gridTemplateColumns = "55% 45%";
-      this._element.style.gridTemplateRows = "100%";
+      super("InventoryCharacter", `content${containerId}`);
+      this.element.style.display = "grid";
+      this.element.style.gridTemplateColumns = "55% 45%";
+      this.element.style.gridTemplateRows = "100%";
       this.equipament = document.createElement("div");
       this.equipament.id = "CharacterEquipament";
-      this.equipament.style.background = "rgb(29, 41, 47)";
+      this.equipament.style.background = "rgb(163, 199, 217)";
       this.equipament.style.boxShadow = "3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset";
       this.add(this.equipament);
       this.stats = document.createElement("div");
       this.stats.id = "CharacterStats";
-      this.stats.style.background = "rgb(29, 41, 47)";
+      this.stats.style.background = "rgb(163, 199, 217)";
       this.stats.style.boxShadow = "3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset";
       this.add(this.stats);
     }
@@ -29717,10 +29717,92 @@ void main() {
     }
   };
 
+  // src/GUI/Slot/index.ts
+  var Slot = class extends UIComponent {
+    item = null;
+    constructor(id, w, h, containerId) {
+      super(id, containerId);
+      this.element.style.position = "relative";
+      this.element.style.width = `${w - 2}px`;
+      this.element.style.height = `${h - 2}px`;
+      this.element.style.backgroundColor = "#555";
+      this.element.style.border = "2px solid #888";
+      this.element.style.display = "inline-block";
+      switch (id) {
+        case "slot-0":
+          this.element.style.borderRadius = "5px 0px 0px 0px";
+          break;
+        case "slot-11":
+          this.element.style.borderRadius = "0px 5px 0px 0px";
+          break;
+        case "slot-71":
+          this.element.style.borderRadius = "0px 0px 5px 0px";
+          break;
+        case "slot-60":
+          this.element.style.borderRadius = "0px 0px 0px 5px";
+          break;
+      }
+      this.element.addEventListener("dragover", (e) => e.preventDefault());
+      this.element.addEventListener("drop", (e) => this.handleDrop(e));
+    }
+    handleDrop(e) {
+      e.preventDefault();
+      const itemId = e.dataTransfer?.getData("text/plain");
+      if (itemId && !this.item) {
+        this.item = gameState.config.items?.find((i) => i.id === itemId) || null;
+        if (this.item) {
+          this.element.innerHTML = `<div draggable="true" class="item" data-id="${this.item.id}">${this.item.name}</div>`;
+          this.element.querySelector(".item")?.addEventListener("dragstart", (e2) => this.handleDragStart(e2));
+          gameState.config.inventory = gameState.config.inventory?.filter((i) => i !== itemId) || [];
+        }
+      }
+    }
+    handleDragStart(e) {
+      if (this.item) {
+        e.dataTransfer?.setData("text/plain", this.item.id);
+        setTimeout(() => {
+          this.item = null;
+          this.element.innerHTML = "";
+        }, 0);
+      }
+    }
+    update(delta) {
+    }
+  };
+
   // src/GUI/Inventory/Grid.ts
+  var countSlots = 72;
   var Grid = class extends UIComponent {
+    slots = [];
+    gridWraper = document.createElement("div");
     constructor(containerId) {
-      super("InventoryGrid", containerId);
+      super("InventoryGrid", `content${containerId}`);
+      this.element.style.background = "rgb(163, 199, 217)";
+      this.element.style.boxShadow = "3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset";
+      this.element.style.display = "flex";
+      this.element.style.justifyContent = "center";
+      this.element.style.alignItems = "center";
+      this.gridWraper.id = "Wrapper";
+      this.gridWraper.style.width = "97%";
+      this.gridWraper.style.height = "94%";
+      this.gridWraper.style.display = "grid";
+      this.element.appendChild(this.gridWraper);
+      requestAnimationFrame(() => {
+        this.setup();
+      });
+    }
+    setup() {
+      const w = +(this.gridWraper.clientWidth / 12).toFixed(2);
+      const h = +(this.gridWraper.clientHeight / 6).toFixed(2);
+      this.gridWraper.style.gridTemplateColumns = `repeat(12, ${w}px)`;
+      this.gridWraper.style.gridTemplateRows = `repeat(6, ${h}px)`;
+      for (let i = 0; i < countSlots; i++) {
+        const slot = new Slot(`slot-${i}`, w, h, "InventoryGrid");
+        this.slots.push(slot);
+        this.gridWraper.appendChild(slot.element);
+      }
+    }
+    render() {
     }
     update(delta) {
     }
@@ -29729,7 +29811,9 @@ void main() {
   // src/GUI/Inventory/Money.ts
   var Money = class extends UIComponent {
     constructor(containerId) {
-      super("InventoryMoney", containerId);
+      super("InventoryMoney", `content${containerId}`);
+      this.element.style.background = "rgb(163, 199, 217)";
+      this.element.style.boxShadow = `3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset`;
     }
     update(delta) {
     }
