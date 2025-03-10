@@ -29469,6 +29469,7 @@ void main() {
   };
   var enemy = `${folders.http.assets.models}enemy.glb`;
   var dummy = `${folders.http.assets.models}dummy.glb`;
+  var fireProjectile1 = `${folders.http.assets.models}FireProjectile1.glb`;
 
   // src/helpers/random/base.ts
   var lowerAlphabet = [
@@ -29844,154 +29845,6 @@ void main() {
       this.character.update(delta);
       this.grid.update(delta);
       this.money.update(delta);
-    }
-  };
-
-  // src/lib/ActorManager/index.ts
-  var ActorManager = class {
-    actors;
-    constructor() {
-      this.actors = /* @__PURE__ */ new Map();
-    }
-    addActor(actor, id) {
-      if (this.actors.has(id)) {
-        this.removeActor(id);
-      }
-      this.actors.set(id, actor);
-    }
-    removeActor(id) {
-      const actor = this.actors.get(id);
-      if (actor) this.actors.delete(id);
-    }
-    update(player, delta) {
-      this.actors.forEach((actor) => {
-        actor.update(player, delta);
-      });
-    }
-  };
-
-  // src/lib/GameScene/index.ts
-  var GameScene = class {
-    constructor(scene, world) {
-      this.scene = scene;
-      this.world = world;
-    }
-    _state = 0 /* PRELOAD */;
-    get state() {
-      return this._state;
-    }
-    async tunnelPreload() {
-      if (this._state !== 0 /* PRELOAD */) return;
-      this.preload();
-      this._state = 1 /* CREATE */;
-    }
-    async tunnelCreate() {
-      if (this._state !== 1 /* CREATE */) return;
-      this.create();
-      this._state = 2 /* UPDATE */;
-    }
-    async tunnelUpdate(delta) {
-      if (this._state !== 2 /* UPDATE */) return;
-      this.update(delta);
-    }
-    preload() {
-    }
-    create() {
-    }
-    update(delta) {
-    }
-  };
-
-  // src/lib/InputManager/index.ts
-  var InputManager = class _InputManager {
-    static _instance;
-    _keyState = {};
-    _mouseState = { x: 0, y: 0, buttons: {} };
-    _subscribers = /* @__PURE__ */ new Set();
-    constructor() {
-      this.initListeners();
-    }
-    static get instance() {
-      if (!this._instance) this._instance = new _InputManager();
-      return this._instance;
-    }
-    initListeners() {
-      window.addEventListener("keydown", (e) => this.updateKeyState(e, true));
-      window.addEventListener("keyup", (e) => this.updateKeyState(e, false));
-      window.addEventListener("mousemove", (e) => this.updateMousePosition(e));
-      window.addEventListener(
-        "mousedown",
-        (e) => this.updateMouseButton(e, true)
-      );
-      window.addEventListener("mouseup", (e) => this.updateMouseButton(e, false));
-    }
-    updateKeyState(event, state) {
-      this._keyState[event.code] = state;
-      this.notifySubscribers(event.code, state);
-    }
-    updateMousePosition(event) {
-      this._mouseState.x = event.clientX;
-      this._mouseState.y = event.clientY;
-    }
-    updateMouseButton(event, state) {
-      this._mouseState.buttons[event.button] = state;
-      this.notifySubscribers(`mouse_${event.button}`, state);
-    }
-    notifySubscribers(key, state) {
-      this._subscribers.forEach((callback) => callback(key, state));
-    }
-    subscribe(callback) {
-      this._subscribers.add(callback);
-    }
-    unsubscribe(callback) {
-      this._subscribers.delete(callback);
-    }
-    isKeyDown(key) {
-      return !!this._keyState[key];
-    }
-    isMouseButtonDown(button) {
-      return !!this._mouseState.buttons[button];
-    }
-    getMousePosition() {
-      return { x: this._mouseState.x, y: this._mouseState.y };
-    }
-  };
-
-  // src/lib/InputController/index.ts
-  var InputController = class {
-    constructor(player) {
-      this.player = player;
-      InputManager.instance.subscribe(this.onInput.bind(this));
-    }
-    onInput(key, state) {
-      switch (key) {
-        case "KeyA":
-          state ? this.player.walkLeftOn(this.player.attributes.movespeed) : this.player.walkLeftOff();
-          break;
-        case "KeyD":
-          state ? this.player.walkRightOn(this.player.attributes.movespeed) : this.player.walkRightOff();
-          break;
-        case "KeyW":
-          state ? this.player.walkUpOn(this.player.attributes.movespeed) : this.player.walkUpOff();
-          break;
-        case "KeyS":
-          state ? this.player.walkDownOn(this.player.attributes.movespeed) : this.player.walkDownOff();
-          break;
-      }
-    }
-    destroy() {
-      InputManager.instance.unsubscribe(this.onInput.bind(this));
-    }
-  };
-
-  // src/lib/Attributes/index.ts
-  var Attributes = class {
-    _baseMovespeed;
-    constructor() {
-      this._baseMovespeed = 25;
-    }
-    get movespeed() {
-      return this._baseMovespeed;
     }
   };
 
@@ -32551,6 +32404,288 @@ void main() {
     });
   }
 
+  // src/lib/Actor/index.ts
+  var Actor = class {
+    constructor(params) {
+      this.params = params;
+      this._name = params.name;
+      this._modelname = params.model;
+      this._path = this._modelname;
+      this._model = new Object3D();
+      this._size = new Vector3();
+      this._loader = new GLTFLoader();
+      this._loader.load(
+        this._path,
+        (gltf) => {
+          this._totalActions = gltf.animations.length;
+          this._model = gltf.scene;
+          this._model.matrixAutoUpdate = true;
+          new Box3().setFromObject(this._model).getSize(this._size);
+          this.params.scene.add(this._model);
+          this._mixer = new AnimationMixer(this._model);
+          this._body = new Body({
+            mass: 1,
+            shape: new Box(
+              new Vec3(this._size.x * 0.1, this._size.y * 0.5, this._size.z * 0.5)
+            ),
+            position: this.params.position,
+            velocity: new Vec3(0, 0, 0)
+          });
+          this._body.name = this.params.name;
+          this._body.fixedRotation = true;
+          this._body.angularDamping = 0.9;
+          this._body.updateMassProperties();
+          this.params.world.addBody(this._body);
+          gltf.animations.forEach((clip) => {
+            this._actions[clip.name] = this._mixer.clipAction(clip);
+            this._actionsLoaded += 1;
+            if (this._actionsLoaded >= this._totalActions) {
+              this._isActionsReady = true;
+            }
+          });
+        },
+        (event) => {
+          if (event.loaded >= event.total) {
+            this._isModelReady = true;
+          }
+        },
+        (err) => {
+          console.error("Erro ao carregar modelo:", err);
+        }
+      );
+    }
+    _name;
+    _modelname;
+    _model;
+    _path;
+    _size;
+    _mixer;
+    _body;
+    _actions = {};
+    _action = null;
+    _loader;
+    _isActorReady = false;
+    _isActionsReady = false;
+    _isModelReady = false;
+    _totalActions = 0;
+    _actionsLoaded = 0;
+    _lastRotationY = 0;
+    get body() {
+      return this._body;
+    }
+    get model() {
+      return this._model;
+    }
+    get actions() {
+      return this._actions;
+    }
+    get isReady() {
+      return this._isActorReady;
+    }
+    update(player, delta) {
+      if (this._isActorReady) {
+        if (this._mixer) this._mixer.update(delta);
+        this.align();
+        this.rotation();
+      } else {
+        if (this._isActionsReady && this._isModelReady) this._isActorReady = true;
+      }
+    }
+    align() {
+      this._model.position.copy(
+        new Vector3(
+          this._body.position.x,
+          this._body.position.y - this._size.y * 0.5,
+          this._body.position.z
+        )
+      );
+      this._model.quaternion.copy(
+        new Quaternion(
+          this._body.quaternion.x,
+          this._body.quaternion.y,
+          this._body.quaternion.z,
+          this._body.quaternion.w
+        )
+      );
+    }
+    rotation() {
+      if (this._body.velocity.x !== 0 || this._body.velocity.z !== 0) {
+        const targetRotation = Math.atan2(
+          this._body.velocity.x,
+          this._body.velocity.z
+        );
+        this._model.rotation.y = MathUtils.lerp(
+          this._model.rotation.y,
+          targetRotation,
+          1
+        );
+        this._lastRotationY = this._model.rotation.y;
+      } else {
+        this._model.rotation.y = this._lastRotationY;
+      }
+    }
+    playAnimation(name, timeScale) {
+      if (!this._isActorReady) return;
+      if (!this._actions[name]) {
+        console.warn(`A anima\xE7\xE3o "${name}" n\xE3o foi encontrada!`);
+        return;
+      }
+      if (this._action === this._actions[name]) return;
+      if (this._action) this._action.fadeOut(0.7);
+      this._action = this._actions[name];
+      this._action.reset().fadeIn(0.7).play();
+      this._action.timeScale = timeScale ? timeScale : 1;
+    }
+  };
+
+  // src/lib/ActorManager/index.ts
+  var ActorManager = class {
+    actors;
+    constructor() {
+      this.actors = /* @__PURE__ */ new Map();
+    }
+    addActor(actor, id) {
+      if (this.actors.has(id)) {
+        this.removeActor(id);
+      }
+      this.actors.set(id, actor);
+    }
+    removeActor(id) {
+      const actor = this.actors.get(id);
+      if (actor) this.actors.delete(id);
+    }
+    update(player, delta) {
+      this.actors.forEach((actor) => {
+        actor.update(player, delta);
+      });
+    }
+  };
+
+  // src/lib/GameScene/index.ts
+  var GameScene = class {
+    constructor(scene, world) {
+      this.scene = scene;
+      this.world = world;
+    }
+    _state = 0 /* PRELOAD */;
+    get state() {
+      return this._state;
+    }
+    async tunnelPreload() {
+      if (this._state !== 0 /* PRELOAD */) return;
+      this.preload();
+      this._state = 1 /* CREATE */;
+    }
+    async tunnelCreate() {
+      if (this._state !== 1 /* CREATE */) return;
+      this.create();
+      this._state = 2 /* UPDATE */;
+    }
+    async tunnelUpdate(delta) {
+      if (this._state !== 2 /* UPDATE */) return;
+      this.update(delta);
+    }
+    preload() {
+    }
+    create() {
+    }
+    update(delta) {
+    }
+  };
+
+  // src/lib/InputManager/index.ts
+  var InputManager = class _InputManager {
+    static _instance;
+    _keyState = {};
+    _mouseState = { x: 0, y: 0, buttons: {} };
+    _subscribers = /* @__PURE__ */ new Set();
+    constructor() {
+      this.initListeners();
+    }
+    static get instance() {
+      if (!this._instance) this._instance = new _InputManager();
+      return this._instance;
+    }
+    initListeners() {
+      window.addEventListener("keydown", (e) => this.updateKeyState(e, true));
+      window.addEventListener("keyup", (e) => this.updateKeyState(e, false));
+      window.addEventListener("mousemove", (e) => this.updateMousePosition(e));
+      window.addEventListener(
+        "mousedown",
+        (e) => this.updateMouseButton(e, true)
+      );
+      window.addEventListener("mouseup", (e) => this.updateMouseButton(e, false));
+    }
+    updateKeyState(event, state) {
+      this._keyState[event.code] = state;
+      this.notifySubscribers(event.code, state);
+    }
+    updateMousePosition(event) {
+      this._mouseState.x = event.clientX;
+      this._mouseState.y = event.clientY;
+    }
+    updateMouseButton(event, state) {
+      this._mouseState.buttons[event.button] = state;
+      this.notifySubscribers(`mouse_${event.button}`, state);
+    }
+    notifySubscribers(key, state) {
+      this._subscribers.forEach((callback) => callback(key, state));
+    }
+    subscribe(callback) {
+      this._subscribers.add(callback);
+    }
+    unsubscribe(callback) {
+      this._subscribers.delete(callback);
+    }
+    isKeyDown(key) {
+      return !!this._keyState[key];
+    }
+    isMouseButtonDown(button) {
+      return !!this._mouseState.buttons[button];
+    }
+    getMousePosition() {
+      return { x: this._mouseState.x, y: this._mouseState.y };
+    }
+  };
+
+  // src/lib/InputController/index.ts
+  var InputController = class {
+    constructor(player) {
+      this.player = player;
+      InputManager.instance.subscribe(this.onInput.bind(this));
+    }
+    onInput(key, state) {
+      switch (key) {
+        case "KeyA":
+          state ? this.player.walkLeftOn(this.player.attributes.movespeed) : this.player.walkLeftOff();
+          break;
+        case "KeyD":
+          state ? this.player.walkRightOn(this.player.attributes.movespeed) : this.player.walkRightOff();
+          break;
+        case "KeyW":
+          state ? this.player.walkUpOn(this.player.attributes.movespeed) : this.player.walkUpOff();
+          break;
+        case "KeyS":
+          state ? this.player.walkDownOn(this.player.attributes.movespeed) : this.player.walkDownOff();
+          break;
+      }
+    }
+    destroy() {
+      InputManager.instance.unsubscribe(this.onInput.bind(this));
+    }
+  };
+
+  // src/lib/Attributes/index.ts
+  var Attributes = class {
+    _baseMovespeed;
+    constructor() {
+      this._baseMovespeed = 25;
+    }
+    get movespeed() {
+      return this._baseMovespeed;
+    }
+  };
+
   // src/lib/Entity/index.ts
   var Entity = class {
     constructor(params) {
@@ -32868,6 +33003,16 @@ void main() {
         world: this.world,
         position: new Vec3(0, -3, 0)
       });
+      this.actorManager.addActor(
+        new Actor({
+          model: fireProjectile1,
+          name: "fff",
+          scene: this.scene,
+          world: this.world,
+          position: new Vec3(0, 1, 0)
+        }),
+        "qwe"
+      );
       this.player.preload();
       this.guiManager.addGui(new Inventory("Inv"), "inventory");
     }

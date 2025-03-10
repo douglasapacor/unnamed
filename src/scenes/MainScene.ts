@@ -1,6 +1,7 @@
 import { Vec3 } from "cannon-es";
-import { dummy } from "../directories";
+import { dummy, fireProjectile1 } from "../directories";
 import { Inventory } from "../GUI/Inventory";
+import Actor from "../lib/Actor";
 import ActorManager from "../lib/ActorManager";
 import GameScene from "../lib/GameScene";
 import { InputController } from "../lib/InputController";
@@ -25,6 +26,17 @@ export default class MainScene extends GameScene {
       world: this.world,
       position: new Vec3(0, -3, 0),
     });
+
+    this.actorManager.addActor(
+      new Actor({
+        model: fireProjectile1,
+        name: "fff",
+        scene: this.scene,
+        world: this.world,
+        position: new Vec3(0, 1, 0),
+      }),
+      "qwe"
+    );
     this.player.preload();
     this.guiManager.addGui(new Inventory("Inv"), "inventory");
   }
