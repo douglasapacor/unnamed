@@ -10,5 +10,11 @@
     <script src="/js/neutralino/neutralino.js"></script>
     <script src="/js/neutralino/main.js"></script>
     <script type="module" src="/js/index.js"></script>
+    <script src="/js/effekseer.min.js"></script>
+    <script>
+      effekseer.initRuntime("/js/effekseer.wasm", () => {
+        console.log("Effekseer loaded");
+      });
+    </script>
   </body>
 </html>
