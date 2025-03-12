@@ -4,7 +4,6 @@ import GameScene from "../GameScene";
 import Light from "../Light";
 import Physic from "../Physic";
 import { GameState, SceneState } from "./type";
-import { EffekseerContext, EffekseerHandle } from "effekseer";
 
 export default class Game {
   private scene!: THREE.Scene;
@@ -18,8 +17,6 @@ export default class Game {
   private socket?: GameScene;
   private gameSceneList: (typeof GameScene)[];
   private state: GameState = GameState.BUILD;
-  private effekseerContext!: EffekseerContext;
-  private effekseerHandle!: EffekseerHandle;
 
   constructor(params: { scenes: (typeof GameScene)[] }) {
     this.gameSceneList = params.scenes;
@@ -58,12 +55,6 @@ export default class Game {
     this.camera = new Camera();
     this.light = new Light();
     this.physic = new Physic();
-    this.effekseerContext = effekseer.createContext();
-
-    if (!this.effekseerContext) {
-      console.error("Failed to create Effekseer context");
-      return;
-    }
 
     if (this.gameSceneList.length > 0) {
       this.socket = new this.gameSceneList[0](this.scene, this.physic.world);
@@ -76,24 +67,6 @@ export default class Game {
       powerPreference: "high-performance",
       logarithmicDepthBuffer: true,
     });
-
-    this.effekseerContext.init(this.renderer.getContext());
-
-    const effect = this.effekseerContext.loadEffect(
-      "/assets/effects/Laser01.efkefc",
-      1.0,
-      () => {
-        this.effekseerHandle = this.effekseerContext.play(effect, 0, 0, 0);
-
-        if (this.effekseerHandle) {
-          this.effekseerHandle.setScale(1, 1, 1);
-        } else {
-          console.error("Handle is undefined");
-        }
-      }
-    );
-
-    this.effekseerHandle = this.effekseerContext.play(effect, 0, 0, 0);
 
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -116,22 +89,6 @@ export default class Game {
     this.renderer.state.reset();
 
     this.physic.update(delta);
-
-    this.effekseerContext.update();
-
-    this.effekseerContext.setProjectionMatrix(
-      this.camera.camera.projectionMatrix.elements as any
-    );
-
-    this.effekseerContext.setCameraMatrix(
-      this.camera.camera.matrixWorldInverse.elements as any
-    );
-
-    this.effekseerContext.draw();
-
-    if (this.effekseerHandle) {
-      console.log("Effect active:", this.effekseerHandle.exists);
-    }
 
     this.renderer.render(this.scene, this.camera.camera);
 

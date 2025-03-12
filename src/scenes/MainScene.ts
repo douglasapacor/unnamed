@@ -1,7 +1,6 @@
 import { Vec3 } from "cannon-es";
-import { dummy, fireProjectile1 } from "../directories";
+import { dummy } from "../directories";
 import { Inventory } from "../GUI/Inventory";
-import Actor from "../lib/Actor";
 import ActorManager from "../lib/ActorManager";
 import GameScene from "../lib/GameScene";
 import { InputController } from "../lib/InputController";

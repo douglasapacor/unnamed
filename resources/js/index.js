@@ -29362,8 +29362,6 @@ void main() {
     socket;
     gameSceneList;
     state = 0 /* BUILD */;
-    effekseerContext;
-    effekseerHandle;
     constructor(params) {
       this.gameSceneList = params.scenes;
       this.build();
@@ -29394,11 +29392,6 @@ void main() {
       this.camera = new Camera2();
       this.light = new Light2();
       this.physic = new Physic();
-      this.effekseerContext = effekseer.createContext();
-      if (!this.effekseerContext) {
-        console.error("Failed to create Effekseer context");
-        return;
-      }
       if (this.gameSceneList.length > 0) {
         this.socket = new this.gameSceneList[0](this.scene, this.physic.world);
       }
@@ -29409,24 +29402,6 @@ void main() {
         powerPreference: "high-performance",
         logarithmicDepthBuffer: true
       });
-      this.effekseerContext.init(this.renderer.getContext());
-      const effect = this.effekseerContext.loadEffect(
-        "/assets/effects/Laser01.efkefc",
-        1,
-        () => {
-          console.log("Effect loaded");
-          console.log("Effect:", effect);
-          this.effekseerHandle = this.effekseerContext.play(effect, 0, 0, 0);
-          console.log("Handle:", this.effekseerHandle);
-          if (this.effekseerHandle) {
-            this.effekseerHandle.setScale(1, 1, 1);
-            console.log("Effect is playing:", this.effekseerHandle.exists);
-          } else {
-            console.error("Handle is undefined");
-          }
-        }
-      );
-      this.effekseerHandle = this.effekseerContext.play(effect, 0, 0, 0);
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = PCFSoftShadowMap;
@@ -29440,17 +29415,6 @@ void main() {
       const delta = this.clock.getDelta();
       this.renderer.state.reset();
       this.physic.update(delta);
-      this.effekseerContext.update();
-      this.effekseerContext.setProjectionMatrix(
-        this.camera.camera.projectionMatrix.elements
-      );
-      this.effekseerContext.setCameraMatrix(
-        this.camera.camera.matrixWorldInverse.elements
-      );
-      this.effekseerContext.draw();
-      if (this.effekseerHandle) {
-        console.log("Effect active:", this.effekseerHandle.exists);
-      }
       this.renderer.render(this.scene, this.camera.camera);
       if (this.socket) {
         switch (this.socket.state) {
@@ -32838,7 +32802,7 @@ void main() {
       this.body.data = { type: "ground" };
       params.world.addBody(this.body);
       this.geometry = new BoxGeometry(160, 0.6, 160);
-      this.material = new MeshStandardMaterial();
+      this.material = new MeshStandardMaterial({ color: 10053120 });
       this.mesh = new Mesh(this.geometry, this.material);
       this.mesh.receiveShadow = true;
       params.scene.add(this.mesh);

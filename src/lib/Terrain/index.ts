@@ -22,8 +22,7 @@ export default class Terrain {
 
     this.geometry = new THREE.BoxGeometry(160, 0.6, 160);
 
-    // this.material = new THREE.MeshStandardMaterial({ color: 0x996600 });
-    this.material = new THREE.MeshStandardMaterial();
+    this.material = new THREE.MeshStandardMaterial({ color: 0x996600 });
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.receiveShadow = true;
 
