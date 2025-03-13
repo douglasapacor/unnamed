@@ -1,3 +1,4 @@
+import { EffekseerContext, EffekseerEffect, EffekseerHandle } from "effekseer";
 import * as THREE from "three";
 import Camera from "../Camera";
 import GameScene from "../GameScene";
@@ -8,6 +9,7 @@ import { GameState, SceneState } from "./type";
 export default class Game {
   private scene!: THREE.Scene;
   private light!: Light;
+  private delta: number = 0;
   private camera!: Camera;
   private physic!: Physic;
   private renderer!: THREE.WebGLRenderer;
@@ -18,11 +20,38 @@ export default class Game {
   private gameSceneList: (typeof GameScene)[];
   private state: GameState = GameState.BUILD;
 
+  // TESTE
+  private effekseerContext!: EffekseerContext;
+  private effekseerHandle!: EffekseerHandle;
+  private effekseerEffect!: EffekseerEffect;
+
   constructor(params: { scenes: (typeof GameScene)[] }) {
     this.gameSceneList = params.scenes;
-
     this.build();
+    this.loadEffect();
     this.loop();
+  }
+
+  private loadEffect() {
+    if (this.effekseerContext) {
+      this.effekseerEffect = this.effekseerContext.loadEffect(
+        "/assets/effects/fireworks.efkefc",
+        1.0,
+        () => {
+          console.log("Effect loaded");
+          this.effekseerHandle = this.effekseerContext.play(
+            this.effekseerEffect,
+            0,
+            0,
+            0
+          );
+          console.log("Handle:", this.effekseerHandle);
+          if (this.effekseerHandle) {
+            this.effekseerHandle.setScale(1, 1, 1);
+          }
+        }
+      );
+    }
   }
 
   private build(): void {
@@ -68,13 +97,11 @@ export default class Game {
       logarithmicDepthBuffer: true,
     });
     this.renderer.setPixelRatio(window.devicePixelRatio);
-
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.scene.add(this.light.light);
 
+    this.scene.add(this.light.light);
     this.state = GameState.RUNNING;
   }
 
@@ -83,11 +110,15 @@ export default class Game {
 
     if (this.state !== GameState.RUNNING) return;
 
-    const delta = this.clock.getDelta();
+    this.delta = this.clock.getDelta();
 
-    this.physic.update(delta);
-    this.renderer.state.reset();
-    this.renderer.render(this.scene, this.camera.camera);
+    this.physic.update(this.delta);
+
+    if (this.effekseerContext) {
+      this.effekseerContext.update();
+      this.renderer.clear();
+      this.effekseerContext.draw();
+    }
 
     if (this.socket) {
       switch (this.socket.state) {
@@ -100,9 +131,12 @@ export default class Game {
           break;
 
         case SceneState.UPDATE:
-          this.socket.tunnelUpdate(delta);
+          this.socket.tunnelUpdate(this.delta);
           break;
       }
     }
+
+    this.renderer.state.reset();
+    this.renderer.render(this.scene, this.camera.camera);
   }
 }
