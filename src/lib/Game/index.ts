@@ -96,6 +96,7 @@ export default class Game {
       powerPreference: "high-performance",
       logarithmicDepthBuffer: true,
     });
+
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -112,13 +113,11 @@ export default class Game {
 
     this.delta = this.clock.getDelta();
 
+    this.renderer.state.reset();
+
     this.physic.update(this.delta);
 
-    if (this.effekseerContext) {
-      this.effekseerContext.update();
-      this.renderer.clear();
-      this.effekseerContext.draw();
-    }
+    this.renderer.render(this.scene, this.camera.camera);
 
     if (this.socket) {
       switch (this.socket.state) {

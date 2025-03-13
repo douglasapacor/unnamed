@@ -29439,13 +29439,10 @@ void main() {
     async loop() {
       requestAnimationFrame(this.loop.bind(this));
       if (this.state !== 1 /* RUNNING */) return;
-      this.delta = this.clock.getDelta();
-      this.physic.update(this.delta);
-      if (this.effekseerContext) {
-        this.effekseerContext.update();
-        this.renderer.clear();
-        this.effekseerContext.draw();
-      }
+      const delta = this.clock.getDelta();
+      this.renderer.state.reset();
+      this.physic.update(delta);
+      this.renderer.render(this.scene, this.camera.camera);
       if (this.socket) {
         switch (this.socket.state) {
           case 0 /* PRELOAD */:
