@@ -29439,9 +29439,9 @@ void main() {
     async loop() {
       requestAnimationFrame(this.loop.bind(this));
       if (this.state !== 1 /* RUNNING */) return;
-      const delta = this.clock.getDelta();
+      this.delta = this.clock.getDelta();
       this.renderer.state.reset();
-      this.physic.update(delta);
+      this.physic.update(this.delta);
       this.renderer.render(this.scene, this.camera.camera);
       if (this.socket) {
         switch (this.socket.state) {

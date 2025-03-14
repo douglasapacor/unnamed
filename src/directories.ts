@@ -35,6 +35,5 @@ const folders = {
 
 const enemy = `${folders.http.assets.models}enemy.glb`;
 const dummy = `${folders.http.assets.models}dummy.glb`;
-const fireProjectile1 = `${folders.http.assets.models}FireProjectile1.glb`;
 
-export { dummy, enemy, fireProjectile1 };
+export { dummy, enemy };

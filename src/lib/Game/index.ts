@@ -1,4 +1,3 @@
-import { EffekseerContext, EffekseerEffect, EffekseerHandle } from "effekseer";
 import * as THREE from "three";
 import Camera from "../Camera";
 import GameScene from "../GameScene";
@@ -20,38 +19,10 @@ export default class Game {
   private gameSceneList: (typeof GameScene)[];
   private state: GameState = GameState.BUILD;
 
-  // TESTE
-  private effekseerContext!: EffekseerContext;
-  private effekseerHandle!: EffekseerHandle;
-  private effekseerEffect!: EffekseerEffect;
-
   constructor(params: { scenes: (typeof GameScene)[] }) {
     this.gameSceneList = params.scenes;
     this.build();
-    this.loadEffect();
     this.loop();
-  }
-
-  private loadEffect() {
-    if (this.effekseerContext) {
-      this.effekseerEffect = this.effekseerContext.loadEffect(
-        "/assets/effects/fireworks.efkefc",
-        1.0,
-        () => {
-          console.log("Effect loaded");
-          this.effekseerHandle = this.effekseerContext.play(
-            this.effekseerEffect,
-            0,
-            0,
-            0
-          );
-          console.log("Handle:", this.effekseerHandle);
-          if (this.effekseerHandle) {
-            this.effekseerHandle.setScale(1, 1, 1);
-          }
-        }
-      );
-    }
   }
 
   private build(): void {
@@ -108,16 +79,10 @@ export default class Game {
 
   async loop() {
     requestAnimationFrame(this.loop.bind(this));
-
     if (this.state !== GameState.RUNNING) return;
 
     this.delta = this.clock.getDelta();
-
-    this.renderer.state.reset();
-
     this.physic.update(this.delta);
-
-    this.renderer.render(this.scene, this.camera.camera);
 
     if (this.socket) {
       switch (this.socket.state) {
