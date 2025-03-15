@@ -8217,6 +8217,145 @@
       }
     }
   };
+  var SpriteMaterial = class extends Material {
+    constructor(parameters) {
+      super();
+      this.isSpriteMaterial = true;
+      this.type = "SpriteMaterial";
+      this.color = new Color(16777215);
+      this.map = null;
+      this.alphaMap = null;
+      this.rotation = 0;
+      this.sizeAttenuation = true;
+      this.transparent = true;
+      this.fog = true;
+      this.setValues(parameters);
+    }
+    copy(source) {
+      super.copy(source);
+      this.color.copy(source.color);
+      this.map = source.map;
+      this.alphaMap = source.alphaMap;
+      this.rotation = source.rotation;
+      this.sizeAttenuation = source.sizeAttenuation;
+      this.fog = source.fog;
+      return this;
+    }
+  };
+  var _geometry;
+  var _intersectPoint = /* @__PURE__ */ new Vector3();
+  var _worldScale = /* @__PURE__ */ new Vector3();
+  var _mvPosition = /* @__PURE__ */ new Vector3();
+  var _alignedPosition = /* @__PURE__ */ new Vector2();
+  var _rotatedPosition = /* @__PURE__ */ new Vector2();
+  var _viewWorldMatrix = /* @__PURE__ */ new Matrix4();
+  var _vA = /* @__PURE__ */ new Vector3();
+  var _vB = /* @__PURE__ */ new Vector3();
+  var _vC = /* @__PURE__ */ new Vector3();
+  var _uvA = /* @__PURE__ */ new Vector2();
+  var _uvB = /* @__PURE__ */ new Vector2();
+  var _uvC = /* @__PURE__ */ new Vector2();
+  var Sprite = class extends Object3D {
+    constructor(material = new SpriteMaterial()) {
+      super();
+      this.isSprite = true;
+      this.type = "Sprite";
+      if (_geometry === void 0) {
+        _geometry = new BufferGeometry();
+        const float32Array = new Float32Array([
+          -0.5,
+          -0.5,
+          0,
+          0,
+          0,
+          0.5,
+          -0.5,
+          0,
+          1,
+          0,
+          0.5,
+          0.5,
+          0,
+          1,
+          1,
+          -0.5,
+          0.5,
+          0,
+          0,
+          1
+        ]);
+        const interleavedBuffer = new InterleavedBuffer(float32Array, 5);
+        _geometry.setIndex([0, 1, 2, 0, 2, 3]);
+        _geometry.setAttribute("position", new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
+        _geometry.setAttribute("uv", new InterleavedBufferAttribute(interleavedBuffer, 2, 3, false));
+      }
+      this.geometry = _geometry;
+      this.material = material;
+      this.center = new Vector2(0.5, 0.5);
+    }
+    raycast(raycaster, intersects) {
+      if (raycaster.camera === null) {
+        console.error('THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.');
+      }
+      _worldScale.setFromMatrixScale(this.matrixWorld);
+      _viewWorldMatrix.copy(raycaster.camera.matrixWorld);
+      this.modelViewMatrix.multiplyMatrices(raycaster.camera.matrixWorldInverse, this.matrixWorld);
+      _mvPosition.setFromMatrixPosition(this.modelViewMatrix);
+      if (raycaster.camera.isPerspectiveCamera && this.material.sizeAttenuation === false) {
+        _worldScale.multiplyScalar(-_mvPosition.z);
+      }
+      const rotation = this.material.rotation;
+      let sin, cos;
+      if (rotation !== 0) {
+        cos = Math.cos(rotation);
+        sin = Math.sin(rotation);
+      }
+      const center = this.center;
+      transformVertex(_vA.set(-0.5, -0.5, 0), _mvPosition, center, _worldScale, sin, cos);
+      transformVertex(_vB.set(0.5, -0.5, 0), _mvPosition, center, _worldScale, sin, cos);
+      transformVertex(_vC.set(0.5, 0.5, 0), _mvPosition, center, _worldScale, sin, cos);
+      _uvA.set(0, 0);
+      _uvB.set(1, 0);
+      _uvC.set(1, 1);
+      let intersect2 = raycaster.ray.intersectTriangle(_vA, _vB, _vC, false, _intersectPoint);
+      if (intersect2 === null) {
+        transformVertex(_vB.set(-0.5, 0.5, 0), _mvPosition, center, _worldScale, sin, cos);
+        _uvB.set(0, 1);
+        intersect2 = raycaster.ray.intersectTriangle(_vA, _vC, _vB, false, _intersectPoint);
+        if (intersect2 === null) {
+          return;
+        }
+      }
+      const distance = raycaster.ray.origin.distanceTo(_intersectPoint);
+      if (distance < raycaster.near || distance > raycaster.far) return;
+      intersects.push({
+        distance,
+        point: _intersectPoint.clone(),
+        uv: Triangle.getInterpolation(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2()),
+        face: null,
+        object: this
+      });
+    }
+    copy(source, recursive) {
+      super.copy(source, recursive);
+      if (source.center !== void 0) this.center.copy(source.center);
+      this.material = source.material;
+      return this;
+    }
+  };
+  function transformVertex(vertexPosition, mvPosition, center, scale, sin, cos) {
+    _alignedPosition.subVectors(vertexPosition, center).addScalar(0.5).multiply(scale);
+    if (sin !== void 0) {
+      _rotatedPosition.x = cos * _alignedPosition.x - sin * _alignedPosition.y;
+      _rotatedPosition.y = sin * _alignedPosition.x + cos * _alignedPosition.y;
+    } else {
+      _rotatedPosition.copy(_alignedPosition);
+    }
+    vertexPosition.copy(mvPosition);
+    vertexPosition.x += _rotatedPosition.x;
+    vertexPosition.y += _rotatedPosition.y;
+    vertexPosition.applyMatrix4(_viewWorldMatrix);
+  }
   var _basePosition = /* @__PURE__ */ new Vector3();
   var _skinIndex = /* @__PURE__ */ new Vector4();
   var _skinWeight = /* @__PURE__ */ new Vector4();
@@ -9242,6 +9381,76 @@
     }
     static fromJSON(data) {
       return new _PlaneGeometry(data.width, data.height, data.widthSegments, data.heightSegments);
+    }
+  };
+  var SphereGeometry = class _SphereGeometry extends BufferGeometry {
+    constructor(radius = 1, widthSegments = 32, heightSegments = 16, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI) {
+      super();
+      this.type = "SphereGeometry";
+      this.parameters = {
+        radius,
+        widthSegments,
+        heightSegments,
+        phiStart,
+        phiLength,
+        thetaStart,
+        thetaLength
+      };
+      widthSegments = Math.max(3, Math.floor(widthSegments));
+      heightSegments = Math.max(2, Math.floor(heightSegments));
+      const thetaEnd = Math.min(thetaStart + thetaLength, Math.PI);
+      let index = 0;
+      const grid = [];
+      const vertex2 = new Vector3();
+      const normal = new Vector3();
+      const indices = [];
+      const vertices = [];
+      const normals = [];
+      const uvs = [];
+      for (let iy = 0; iy <= heightSegments; iy++) {
+        const verticesRow = [];
+        const v = iy / heightSegments;
+        let uOffset = 0;
+        if (iy === 0 && thetaStart === 0) {
+          uOffset = 0.5 / widthSegments;
+        } else if (iy === heightSegments && thetaEnd === Math.PI) {
+          uOffset = -0.5 / widthSegments;
+        }
+        for (let ix = 0; ix <= widthSegments; ix++) {
+          const u = ix / widthSegments;
+          vertex2.x = -radius * Math.cos(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
+          vertex2.y = radius * Math.cos(thetaStart + v * thetaLength);
+          vertex2.z = radius * Math.sin(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
+          vertices.push(vertex2.x, vertex2.y, vertex2.z);
+          normal.copy(vertex2).normalize();
+          normals.push(normal.x, normal.y, normal.z);
+          uvs.push(u + uOffset, 1 - v);
+          verticesRow.push(index++);
+        }
+        grid.push(verticesRow);
+      }
+      for (let iy = 0; iy < heightSegments; iy++) {
+        for (let ix = 0; ix < widthSegments; ix++) {
+          const a2 = grid[iy][ix + 1];
+          const b2 = grid[iy][ix];
+          const c2 = grid[iy + 1][ix];
+          const d = grid[iy + 1][ix + 1];
+          if (iy !== 0 || thetaStart > 0) indices.push(a2, b2, d);
+          if (iy !== heightSegments - 1 || thetaEnd < Math.PI) indices.push(b2, c2, d);
+        }
+      }
+      this.setIndex(indices);
+      this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+      this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    static fromJSON(data) {
+      return new _SphereGeometry(data.radius, data.widthSegments, data.heightSegments, data.phiStart, data.phiLength, data.thetaStart, data.thetaLength);
     }
   };
   var MeshStandardMaterial = class extends Material {
@@ -29363,36 +29572,10 @@ void main() {
     socket;
     gameSceneList;
     state = 0 /* BUILD */;
-    // TESTE
-    effekseerContext;
-    effekseerHandle;
-    effekseerEffect;
     constructor(params) {
       this.gameSceneList = params.scenes;
       this.build();
-      this.loadEffect();
       this.loop();
-    }
-    loadEffect() {
-      if (this.effekseerContext) {
-        this.effekseerEffect = this.effekseerContext.loadEffect(
-          "/assets/effects/fireworks.efkefc",
-          1,
-          () => {
-            console.log("Effect loaded");
-            this.effekseerHandle = this.effekseerContext.play(
-              this.effekseerEffect,
-              0,
-              0,
-              0
-            );
-            console.log("Handle:", this.effekseerHandle);
-            if (this.effekseerHandle) {
-              this.effekseerHandle.setScale(1, 1, 1);
-            }
-          }
-        );
-      }
     }
     build() {
       if (this.state !== 0 /* BUILD */) return;
@@ -29440,9 +29623,7 @@ void main() {
       requestAnimationFrame(this.loop.bind(this));
       if (this.state !== 1 /* RUNNING */) return;
       this.delta = this.clock.getDelta();
-      this.renderer.state.reset();
       this.physic.update(this.delta);
-      this.renderer.render(this.scene, this.camera.camera);
       if (this.socket) {
         switch (this.socket.state) {
           case 0 /* PRELOAD */:
@@ -29498,384 +29679,6 @@ void main() {
   };
   var enemy = `${folders.http.assets.models}enemy.glb`;
   var dummy = `${folders.http.assets.models}dummy.glb`;
-  var fireProjectile1 = `${folders.http.assets.models}FireProjectile1.glb`;
-
-  // src/helpers/random/base.ts
-  var lowerAlphabet = [
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "k",
-    "l",
-    "m",
-    "n",
-    "o",
-    "p",
-    "q",
-    "r",
-    "s",
-    "t",
-    "u",
-    "v",
-    "x",
-    "w",
-    "y",
-    "z"
-  ];
-  var upperAlphabet = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "X",
-    "W",
-    "Y",
-    "Z"
-  ];
-  var commomNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-
-  // src/helpers/random/implementation.ts
-  var generateRandomRangeNumber = (min, max) => {
-    return parseInt(`${Math.random() * (max - min) + min}`);
-  };
-  var generateKey = (keySize) => {
-    let newKey = "";
-    let rounds = 26;
-    if (keySize) rounds = keySize;
-    for (let i = 0; i < rounds; i++) {
-      const typeCharacter = generateRandomRangeNumber(0, 3);
-      if (typeCharacter === 0) {
-        const indexCharacters = generateRandomRangeNumber(
-          0,
-          lowerAlphabet.length
-        );
-        newKey += lowerAlphabet[indexCharacters];
-      }
-      if (typeCharacter === 1) {
-        const indexCharacters = generateRandomRangeNumber(
-          0,
-          upperAlphabet.length
-        );
-        newKey += upperAlphabet[indexCharacters];
-      }
-      if (typeCharacter === 2) {
-        const indexCharacters = generateRandomRangeNumber(
-          0,
-          commomNumbers.length
-        );
-        newKey += commomNumbers[indexCharacters];
-      }
-    }
-    return newKey;
-  };
-
-  // src/lib/UI/GUI/BtnClose.ts
-  var BtnClose = class {
-    _element;
-    _container;
-    _internal;
-    _text;
-    onclose = () => {
-    };
-    constructor(containerId) {
-      this._container = document.getElementById(containerId);
-      this._element = document.createElement("div");
-      this._internal = document.createElement("div");
-      this._text = document.createElement("span");
-      this._text.innerText = "X";
-      this._element.style.width = "22px";
-      this._element.style.height = "60%";
-      this._element.style.display = "flex";
-      this._element.style.alignItems = "center";
-      this._element.style.justifyContent = "center";
-      this._element.style.cursor = "pointer";
-      this._element.style.marginRight = "6px";
-      this._element.style.background = "linear-gradient(145deg,rgba(255, 255, 255, 1) 0%,rgba(130, 90, 44, 1) 64%,rgba(93, 63, 28, 1) 100%)";
-      this._internal.style.width = "80%";
-      this._internal.style.height = "80%";
-      this._internal.style.display = "flex";
-      this._internal.style.alignItems = "center";
-      this._internal.style.justifyContent = "center";
-      this._internal.style.background = "linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(240, 186, 186, 1) 19%, rgba(240, 128, 128, 1) 40%, rgb(183, 28, 28) 100%)";
-      this._internal.appendChild(this._text);
-      this._element.appendChild(this._internal);
-      this._container.appendChild(this._element);
-      this._element.onclick = () => {
-        this.onclose();
-      };
-    }
-    get element() {
-      return this._element;
-    }
-    destroy() {
-      this._container.removeChild(this._element);
-    }
-  };
-
-  // src/lib/UI/GUI/index.ts
-  var GUI = class {
-    _container;
-    _element;
-    _title;
-    _titleText;
-    _content;
-    _closeBtn;
-    constructor(id, config2) {
-      this._container = document.getElementById("ui-container");
-      this._element = document.createElement("div");
-      this._title = document.createElement("div");
-      this._titleText = document.createElement("span");
-      this._content = document.createElement("div");
-      const idtitle = `TitleContainer${generateKey(9)}`;
-      this._title.id = idtitle;
-      this._title.style.position = "relative";
-      this._title.style.color = "white";
-      this._title.style.display = "flex";
-      this._title.style.alignItems = "center";
-      this._title.style.justifyContent = "space-between";
-      this._title.style.background = "linear-gradient(90deg,rgba(89, 185, 173, 1) 0%,rgba(0, 105, 92, 1) 22%,rgba(0, 77, 64, 1) 39%,rgba(0, 5, 4, 1) 61%)";
-      this._titleText.innerText = config2.label;
-      this._titleText.style.marginLeft = "15px";
-      this._element.id = id;
-      this._element.style.width = config2.width;
-      this._element.style.height = config2.height;
-      this._element.style.pointerEvents = "auto";
-      this._element.style.position = "absolute";
-      this._element.style.fontFamily = "Arial, sans-serif";
-      this._element.style.background = "#44403c";
-      this._element.style.border = "2px solid #b0b0b0";
-      this._element.style.display = "grid";
-      this._element.style.gridTemplateColumns = "100%";
-      this._element.style.gridTemplateRows = "5% 95%";
-      if (config2.top) this._element.style.top = config2.top;
-      if (config2.bottom) this._element.style.bottom = config2.bottom;
-      if (config2.right) this._element.style.right = config2.right;
-      if (config2.left) this._element.style.left = config2.left;
-      if (config2.transform) this._element.style.transform = config2.transform;
-      this._content.style.display = "grid";
-      this._content.id = `content${id}`;
-      this._title.appendChild(this._titleText);
-      this._element.appendChild(this._title);
-      this._element.appendChild(this._content);
-      this._container.appendChild(this._element);
-      this._closeBtn = new BtnClose(idtitle);
-      this._closeBtn.onclose = () => {
-        this._element.style.display = "none";
-      };
-    }
-    get content() {
-      return this._content;
-    }
-    destroy() {
-      this._container.removeChild(this._element);
-    }
-    add(node) {
-      this._content.appendChild(node);
-    }
-  };
-
-  // src/lib/UI/UIComponent/index.ts
-  var UIComponent = class {
-    _container;
-    _element;
-    constructor(id, containerId) {
-      this._container = document.getElementById(containerId);
-      this._element = document.createElement("div");
-      this._element.id = id;
-      this._element.style.pointerEvents = "auto";
-      this._element.style.position = "relative";
-      this._element.style.fontFamily = "Arial, sans-serif";
-      this._container.appendChild(this._element);
-    }
-    get element() {
-      return this._element;
-    }
-    destroy() {
-      this._container.removeChild(this._element);
-    }
-    add(node) {
-      this._element.appendChild(node);
-    }
-  };
-
-  // src/GUI/Inventory/Character.ts
-  var Character = class extends UIComponent {
-    equipament;
-    stats;
-    constructor(containerId) {
-      super("InventoryCharacter", `content${containerId}`);
-      this.element.style.display = "grid";
-      this.element.style.gridTemplateColumns = "55% 45%";
-      this.element.style.gridTemplateRows = "100%";
-      this.equipament = document.createElement("div");
-      this.equipament.id = "CharacterEquipament";
-      this.equipament.style.background = "rgb(163, 199, 217)";
-      this.equipament.style.boxShadow = "3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset";
-      this.add(this.equipament);
-      this.stats = document.createElement("div");
-      this.stats.id = "CharacterStats";
-      this.stats.style.background = "rgb(163, 199, 217)";
-      this.stats.style.boxShadow = "3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset";
-      this.add(this.stats);
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Slot/index.ts
-  var Slot = class extends UIComponent {
-    item = null;
-    constructor(id, w, h, containerId) {
-      super(id, containerId);
-      this.element.style.position = "relative";
-      this.element.style.width = `${w - 2}px`;
-      this.element.style.height = `${h - 2}px`;
-      this.element.style.backgroundColor = "#555";
-      this.element.style.border = "2px solid #888";
-      this.element.style.display = "inline-block";
-      switch (id) {
-        case "slot-0":
-          this.element.style.borderRadius = "5px 0px 0px 0px";
-          break;
-        case "slot-11":
-          this.element.style.borderRadius = "0px 5px 0px 0px";
-          break;
-        case "slot-71":
-          this.element.style.borderRadius = "0px 0px 5px 0px";
-          break;
-        case "slot-60":
-          this.element.style.borderRadius = "0px 0px 0px 5px";
-          break;
-      }
-      this.element.addEventListener("dragover", (e) => e.preventDefault());
-      this.element.addEventListener("drop", (e) => this.handleDrop(e));
-    }
-    handleDrop(e) {
-      e.preventDefault();
-      const itemId = e.dataTransfer?.getData("text/plain");
-      if (itemId && !this.item) {
-        this.item = gameState.config.items?.find((i) => i.id === itemId) || null;
-        if (this.item) {
-          this.element.innerHTML = `<div draggable="true" class="item" data-id="${this.item.id}">${this.item.name}</div>`;
-          this.element.querySelector(".item")?.addEventListener("dragstart", (e2) => this.handleDragStart(e2));
-          gameState.config.inventory = gameState.config.inventory?.filter((i) => i !== itemId) || [];
-        }
-      }
-    }
-    handleDragStart(e) {
-      if (this.item) {
-        e.dataTransfer?.setData("text/plain", this.item.id);
-        setTimeout(() => {
-          this.item = null;
-          this.element.innerHTML = "";
-        }, 0);
-      }
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/Grid.ts
-  var countSlots = 72;
-  var Grid = class extends UIComponent {
-    slots = [];
-    gridWraper = document.createElement("div");
-    constructor(containerId) {
-      super("InventoryGrid", `content${containerId}`);
-      this.element.style.background = "rgb(163, 199, 217)";
-      this.element.style.boxShadow = "3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset";
-      this.element.style.display = "flex";
-      this.element.style.justifyContent = "center";
-      this.element.style.alignItems = "center";
-      this.gridWraper.id = "Wrapper";
-      this.gridWraper.style.width = "97%";
-      this.gridWraper.style.height = "94%";
-      this.gridWraper.style.display = "grid";
-      this.element.appendChild(this.gridWraper);
-      requestAnimationFrame(() => {
-        this.setup();
-      });
-    }
-    setup() {
-      const w = +(this.gridWraper.clientWidth / 12).toFixed(2);
-      const h = +(this.gridWraper.clientHeight / 6).toFixed(2);
-      this.gridWraper.style.gridTemplateColumns = `repeat(12, ${w}px)`;
-      this.gridWraper.style.gridTemplateRows = `repeat(6, ${h}px)`;
-      for (let i = 0; i < countSlots; i++) {
-        const slot = new Slot(`slot-${i}`, w, h, "InventoryGrid");
-        this.slots.push(slot);
-        this.gridWraper.appendChild(slot.element);
-      }
-    }
-    render() {
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/Money.ts
-  var Money = class extends UIComponent {
-    constructor(containerId) {
-      super("InventoryMoney", `content${containerId}`);
-      this.element.style.background = "rgb(163, 199, 217)";
-      this.element.style.boxShadow = `3px 3px 10px 2px #44403c inset, -3px -3px 10px 2px #44403c inset`;
-    }
-    update(delta) {
-    }
-  };
-
-  // src/GUI/Inventory/index.ts
-  var config = {
-    label: "INVENT\xC0RIO",
-    width: "36%",
-    height: "70%",
-    right: "15px",
-    top: "40%",
-    transform: "translateY(-40%)"
-  };
-  var Inventory = class extends GUI {
-    character;
-    grid;
-    money;
-    constructor(id) {
-      super(id, config);
-      this.character = new Character(id);
-      this.grid = new Grid(id);
-      this.money = new Money(id);
-      this.content.style.gridTemplateColumns = "100%";
-      this.content.style.gridTemplateRows = "50% 40% 10%";
-    }
-    update(delta) {
-      this.character.update(delta);
-      this.grid.update(delta);
-      this.money.update(delta);
-    }
-  };
 
   // src/lib/ActorManager/index.ts
   var ActorManager = class {
@@ -32855,41 +32658,14 @@ void main() {
     }
   };
 
-  // src/lib/UI/UIManager/GUIManager.ts
-  var GUIManager = class {
-    guis;
-    constructor() {
-      this.guis = /* @__PURE__ */ new Map();
-    }
-    addGui(gui, id) {
-      if (this.guis.has(id)) {
-        this.removeComponent(id);
-      }
-      this.guis.set(id, gui);
-    }
-    removeComponent(id) {
-      const gui = this.guis.get(id);
-      if (gui) {
-        gui.destroy();
-        this.guis.delete(id);
-      }
-    }
-    update(delta) {
-      this.guis.forEach((gui) => {
-        gui.update(delta);
-      });
-    }
-  };
-
   // src/scenes/MainScene.ts
   var MainScene = class extends GameScene {
     terrain;
     player;
-    guiManager;
     actorManager;
+    flames = [];
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
-      this.guiManager = new GUIManager();
       this.actorManager = new ActorManager();
       this.player = new Player({
         name: "player",
@@ -32899,16 +32675,83 @@ void main() {
         position: new Vec3(0, -3, 0)
       });
       this.player.preload();
-      this.guiManager.addGui(new Inventory("Inv"), "inventory");
     }
     create() {
       new InputController(this.player);
+      const sphereGeometry = new SphereGeometry(1, 8, 8);
+      const sphereMaterial = new MeshStandardMaterial({
+        color: 16737792,
+        emissive: 16720384,
+        emissiveIntensity: 1.5,
+        roughness: 0.4
+        // Deixa um pouco mais suave
+      });
+      const texture = new TextureLoader().load(
+        "/assets/effects/Texture/Particle01.png"
+      );
+      sphereMaterial.map = texture;
+      const fireballCore = new Mesh(sphereGeometry, sphereMaterial);
+      this.scene.add(fireballCore);
+      const textureLoader = new TextureLoader();
+      const fireTexture = textureLoader.load(
+        "/assets/effects/Texture/flame_03.png"
+      );
+      const fire2Texture = textureLoader.load(
+        "/assets/effects/Texture/flame_04.png"
+      );
+      const fireMaterial = new SpriteMaterial({
+        map: fireTexture,
+        color: 16737792,
+        // Laranja
+        transparent: true,
+        blending: AdditiveBlending
+        // Efeito de brilho
+      });
+      const fireMaterial2 = new SpriteMaterial({
+        map: fire2Texture,
+        color: 16720384,
+        // Laranja
+        transparent: true,
+        blending: AdditiveBlending
+        // Efeito de brilho
+      });
+      for (let i = 0; i < 10; i++) {
+        const flame = new Sprite(fireMaterial);
+        flame.position.set(
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2
+        );
+        flame.scale.set(1.5, 1.5, 1);
+        this.scene.add(flame);
+        this.flames.push(flame);
+      }
+      for (let i = 0; i < 10; i++) {
+        const flame2 = new Sprite(fireMaterial2);
+        flame2.position.set(
+          (Math.random() - 0.3) * 2,
+          (Math.random() - 0.3) * 2,
+          (Math.random() - 0.3) * 2
+        );
+        flame2.scale.set(1.5, 1.5, 1);
+        this.scene.add(flame2);
+        this.flames.push(flame2);
+      }
     }
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
-      this.guiManager.update(delta);
       this.actorManager.update(this.player, delta);
+      this.flames.forEach((flame, i) => {
+        const time = Date.now() * 2e-3 + i;
+        const scaleFactor = 1.5 + Math.sin(time * 3) * 0.5;
+        flame.scale.set(scaleFactor, scaleFactor, 1);
+        flame.position.x += (Math.random() - 0.5) * 0.02;
+        flame.position.y += (Math.random() - 0.5) * 0.02;
+        flame.position.z += (Math.random() - 0.5) * 0.02;
+        flame.rotation.z = Math.sin(time) * 0.5;
+        flame.material.opacity = 0.5 + Math.sin(time * 2) * 0.5;
+      });
     }
   };
 
