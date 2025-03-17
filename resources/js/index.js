@@ -8242,120 +8242,6 @@
       return this;
     }
   };
-  var _geometry;
-  var _intersectPoint = /* @__PURE__ */ new Vector3();
-  var _worldScale = /* @__PURE__ */ new Vector3();
-  var _mvPosition = /* @__PURE__ */ new Vector3();
-  var _alignedPosition = /* @__PURE__ */ new Vector2();
-  var _rotatedPosition = /* @__PURE__ */ new Vector2();
-  var _viewWorldMatrix = /* @__PURE__ */ new Matrix4();
-  var _vA = /* @__PURE__ */ new Vector3();
-  var _vB = /* @__PURE__ */ new Vector3();
-  var _vC = /* @__PURE__ */ new Vector3();
-  var _uvA = /* @__PURE__ */ new Vector2();
-  var _uvB = /* @__PURE__ */ new Vector2();
-  var _uvC = /* @__PURE__ */ new Vector2();
-  var Sprite = class extends Object3D {
-    constructor(material = new SpriteMaterial()) {
-      super();
-      this.isSprite = true;
-      this.type = "Sprite";
-      if (_geometry === void 0) {
-        _geometry = new BufferGeometry();
-        const float32Array = new Float32Array([
-          -0.5,
-          -0.5,
-          0,
-          0,
-          0,
-          0.5,
-          -0.5,
-          0,
-          1,
-          0,
-          0.5,
-          0.5,
-          0,
-          1,
-          1,
-          -0.5,
-          0.5,
-          0,
-          0,
-          1
-        ]);
-        const interleavedBuffer = new InterleavedBuffer(float32Array, 5);
-        _geometry.setIndex([0, 1, 2, 0, 2, 3]);
-        _geometry.setAttribute("position", new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
-        _geometry.setAttribute("uv", new InterleavedBufferAttribute(interleavedBuffer, 2, 3, false));
-      }
-      this.geometry = _geometry;
-      this.material = material;
-      this.center = new Vector2(0.5, 0.5);
-    }
-    raycast(raycaster, intersects) {
-      if (raycaster.camera === null) {
-        console.error('THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.');
-      }
-      _worldScale.setFromMatrixScale(this.matrixWorld);
-      _viewWorldMatrix.copy(raycaster.camera.matrixWorld);
-      this.modelViewMatrix.multiplyMatrices(raycaster.camera.matrixWorldInverse, this.matrixWorld);
-      _mvPosition.setFromMatrixPosition(this.modelViewMatrix);
-      if (raycaster.camera.isPerspectiveCamera && this.material.sizeAttenuation === false) {
-        _worldScale.multiplyScalar(-_mvPosition.z);
-      }
-      const rotation = this.material.rotation;
-      let sin, cos;
-      if (rotation !== 0) {
-        cos = Math.cos(rotation);
-        sin = Math.sin(rotation);
-      }
-      const center = this.center;
-      transformVertex(_vA.set(-0.5, -0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-      transformVertex(_vB.set(0.5, -0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-      transformVertex(_vC.set(0.5, 0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-      _uvA.set(0, 0);
-      _uvB.set(1, 0);
-      _uvC.set(1, 1);
-      let intersect2 = raycaster.ray.intersectTriangle(_vA, _vB, _vC, false, _intersectPoint);
-      if (intersect2 === null) {
-        transformVertex(_vB.set(-0.5, 0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-        _uvB.set(0, 1);
-        intersect2 = raycaster.ray.intersectTriangle(_vA, _vC, _vB, false, _intersectPoint);
-        if (intersect2 === null) {
-          return;
-        }
-      }
-      const distance = raycaster.ray.origin.distanceTo(_intersectPoint);
-      if (distance < raycaster.near || distance > raycaster.far) return;
-      intersects.push({
-        distance,
-        point: _intersectPoint.clone(),
-        uv: Triangle.getInterpolation(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2()),
-        face: null,
-        object: this
-      });
-    }
-    copy(source, recursive) {
-      super.copy(source, recursive);
-      if (source.center !== void 0) this.center.copy(source.center);
-      this.material = source.material;
-      return this;
-    }
-  };
-  function transformVertex(vertexPosition, mvPosition, center, scale, sin, cos) {
-    _alignedPosition.subVectors(vertexPosition, center).addScalar(0.5).multiply(scale);
-    if (sin !== void 0) {
-      _rotatedPosition.x = cos * _alignedPosition.x - sin * _alignedPosition.y;
-      _rotatedPosition.y = sin * _alignedPosition.x + cos * _alignedPosition.y;
-    } else {
-      _rotatedPosition.copy(_alignedPosition);
-    }
-    vertexPosition.copy(mvPosition);
-    vertexPosition.x += _rotatedPosition.x;
-    vertexPosition.y += _rotatedPosition.y;
-    vertexPosition.applyMatrix4(_viewWorldMatrix);
-  }
   var _basePosition = /* @__PURE__ */ new Vector3();
   var _skinIndex = /* @__PURE__ */ new Vector4();
   var _skinWeight = /* @__PURE__ */ new Vector4();
@@ -32658,12 +32544,66 @@ void main() {
     }
   };
 
+  // src/lib/FIreSkill/index.ts
+  var FireSkill = class {
+    constructor(params) {
+      this.params = params;
+      this.geometry = new SphereGeometry(0.05, 32, 32);
+      this.texture_01 = new TextureLoader().load(
+        "/assets/effects/Texture/twirl_03.png"
+      );
+      this.texture_02 = new TextureLoader().load(
+        "/assets/effects/Texture/flame_03.png"
+      );
+      this.texture_03 = new TextureLoader().load(
+        "/assets/effects/Texture/flame_04.png"
+      );
+      this.material_01 = new MeshStandardMaterial({
+        map: this.texture_01,
+        color: 16737792,
+        emissive: 16720384,
+        emissiveIntensity: 0.1,
+        transparent: true,
+        roughness: 0.4
+      });
+      this.material_02 = new SpriteMaterial({
+        map: this.texture_02,
+        color: 16737792,
+        transparent: true,
+        blending: AdditiveBlending
+      });
+      this.material_03 = new SpriteMaterial({
+        map: this.texture_03,
+        color: 16720384,
+        transparent: true,
+        blending: AdditiveBlending
+      });
+      this.mesh = new Mesh(this.geometry, this.material_01);
+      this.params.scene.add(this.mesh);
+    }
+    geometry;
+    material_01;
+    material_02;
+    material_03;
+    mesh;
+    texture_01;
+    texture_02;
+    texture_03;
+    itens = [];
+    update(delta) {
+      this.itens.forEach((item, i) => {
+        const time = Date.now() * 2e-3 + i;
+        item.material.opacity = 0.5 + Math.sin(time * 2) * 0.5;
+      });
+    }
+  };
+
   // src/scenes/MainScene.ts
   var MainScene = class extends GameScene {
     terrain;
     player;
     actorManager;
-    flames = [];
+    fire;
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
       this.actorManager = new ActorManager();
@@ -32678,80 +32618,13 @@ void main() {
     }
     create() {
       new InputController(this.player);
-      const sphereGeometry = new SphereGeometry(1, 8, 8);
-      const sphereMaterial = new MeshStandardMaterial({
-        color: 16737792,
-        emissive: 16720384,
-        emissiveIntensity: 1.5,
-        roughness: 0.4
-        // Deixa um pouco mais suave
-      });
-      const texture = new TextureLoader().load(
-        "/assets/effects/Texture/Particle01.png"
-      );
-      sphereMaterial.map = texture;
-      const fireballCore = new Mesh(sphereGeometry, sphereMaterial);
-      this.scene.add(fireballCore);
-      const textureLoader = new TextureLoader();
-      const fireTexture = textureLoader.load(
-        "/assets/effects/Texture/flame_03.png"
-      );
-      const fire2Texture = textureLoader.load(
-        "/assets/effects/Texture/flame_04.png"
-      );
-      const fireMaterial = new SpriteMaterial({
-        map: fireTexture,
-        color: 16737792,
-        // Laranja
-        transparent: true,
-        blending: AdditiveBlending
-        // Efeito de brilho
-      });
-      const fireMaterial2 = new SpriteMaterial({
-        map: fire2Texture,
-        color: 16720384,
-        // Laranja
-        transparent: true,
-        blending: AdditiveBlending
-        // Efeito de brilho
-      });
-      for (let i = 0; i < 10; i++) {
-        const flame = new Sprite(fireMaterial);
-        flame.position.set(
-          (Math.random() - 0.5) * 2,
-          (Math.random() - 0.5) * 2,
-          (Math.random() - 0.5) * 2
-        );
-        flame.scale.set(1.5, 1.5, 1);
-        this.scene.add(flame);
-        this.flames.push(flame);
-      }
-      for (let i = 0; i < 10; i++) {
-        const flame2 = new Sprite(fireMaterial2);
-        flame2.position.set(
-          (Math.random() - 0.3) * 2,
-          (Math.random() - 0.3) * 2,
-          (Math.random() - 0.3) * 2
-        );
-        flame2.scale.set(1.5, 1.5, 1);
-        this.scene.add(flame2);
-        this.flames.push(flame2);
-      }
+      this.fire = new FireSkill({ scene: this.scene });
     }
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
       this.actorManager.update(this.player, delta);
-      this.flames.forEach((flame, i) => {
-        const time = Date.now() * 2e-3 + i;
-        const scaleFactor = 1.5 + Math.sin(time * 3) * 0.5;
-        flame.scale.set(scaleFactor, scaleFactor, 1);
-        flame.position.x += (Math.random() - 0.5) * 0.02;
-        flame.position.y += (Math.random() - 0.5) * 0.02;
-        flame.position.z += (Math.random() - 0.5) * 0.02;
-        flame.rotation.z = Math.sin(time) * 0.5;
-        flame.material.opacity = 0.5 + Math.sin(time * 2) * 0.5;
-      });
+      this.fire.update(delta);
     }
   };
 
