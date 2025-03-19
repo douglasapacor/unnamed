@@ -5,9 +5,7 @@ import {
   SpriteMaterial,
   Texture,
   TextureLoader,
-  Vector3,
 } from "three";
-
 const fire_02 = "/assets/effects/Texture/transparent/fire_02.png";
 const flame_04 = "/assets/effects/Texture/transparent/flame_04.png";
 

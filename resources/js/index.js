@@ -29626,9 +29626,9 @@ void main() {
       const actor = this.actors.get(id);
       if (actor) this.actors.delete(id);
     }
-    update(player, delta) {
+    update(delta) {
       this.actors.forEach((actor) => {
-        actor.update(player, delta);
+        actor.update(delta);
       });
     }
   };
@@ -32650,7 +32650,7 @@ void main() {
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
-      this.actorManager.update(this.player, delta);
+      this.actorManager.update(delta);
       this.fire.update(delta);
     }
   };

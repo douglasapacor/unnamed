@@ -1,5 +1,4 @@
 import Actor from "../Actor";
-import Player from "../Player";
 
 export default class ActorManager {
   private actors: Map<string, Actor>;
@@ -21,9 +20,9 @@ export default class ActorManager {
     if (actor) this.actors.delete(id);
   }
 
-  public update(player: Player, delta: number) {
+  public update(delta: number) {
     this.actors.forEach((actor) => {
-      actor.update(player, delta);
+      actor.update(delta);
     });
   }
 }

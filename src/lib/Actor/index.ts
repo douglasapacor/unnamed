@@ -10,7 +10,6 @@ import {
   Vector3,
 } from "three";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import Player from "../Player";
 import { ECBody } from "./type";
 
 export default class Actor {
@@ -108,7 +107,7 @@ export default class Actor {
     return this._isActorReady;
   }
 
-  public update(player: Player, delta: number) {
+  public update(delta: number) {
     if (this._isActorReady) {
       if (this._mixer) this._mixer.update(delta);
       this.align();
