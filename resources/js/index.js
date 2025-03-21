@@ -27119,6 +27119,52 @@ void main() {
   var resolveSingleBilateral_vel1 = new Vec3();
   var resolveSingleBilateral_vel2 = new Vec3();
   var resolveSingleBilateral_vel = new Vec3();
+  var Sphere2 = class extends Shape2 {
+    /**
+     * The radius of the sphere.
+     */
+    /**
+     *
+     * @param radius The radius of the sphere, a non-negative number.
+     */
+    constructor(radius) {
+      super({
+        type: Shape2.types.SPHERE
+      });
+      this.radius = radius !== void 0 ? radius : 1;
+      if (this.radius < 0) {
+        throw new Error("The sphere radius cannot be negative.");
+      }
+      this.updateBoundingSphereRadius();
+    }
+    /** calculateLocalInertia */
+    calculateLocalInertia(mass, target) {
+      if (target === void 0) {
+        target = new Vec3();
+      }
+      const I = 2 * mass * this.radius * this.radius / 5;
+      target.x = I;
+      target.y = I;
+      target.z = I;
+      return target;
+    }
+    /** volume */
+    volume() {
+      return 4 * Math.PI * Math.pow(this.radius, 3) / 3;
+    }
+    updateBoundingSphereRadius() {
+      this.boundingSphereRadius = this.radius;
+    }
+    calculateWorldAABB(pos, quat, min, max) {
+      const r = this.radius;
+      const axes = ["x", "y", "z"];
+      for (let i = 0; i < axes.length; i++) {
+        const ax = axes[i];
+        min[ax] = pos[ax] - r;
+        max[ax] = pos[ax] + r;
+      }
+    }
+  };
   var torque = new Vec3();
   var worldAxis = new Vec3();
   var SPHSystem_getNeighbors_dist = new Vec3();
@@ -29633,40 +29679,68 @@ void main() {
     }
   };
 
-  // src/lib/FIreSkill/index.ts
-  var fire_02 = "/assets/effects/Texture/transparent/fire_02.png";
-  var flame_04 = "/assets/effects/Texture/transparent/flame_04.png";
-  var FireSkill = class {
+  // src/lib/Fireball/index.ts
+  var Fireball = class {
     constructor(params) {
       this.params = params;
-      this.texture_01 = this.textureLoader.load(fire_02);
-      this.texture_02 = this.textureLoader.load(flame_04);
-      this.material_01 = new SpriteMaterial({
-        map: this.texture_01,
-        color: 16737792,
-        blending: AdditiveBlending
+      for (let i = 1; i <= this.frameCount; i++) {
+        const frameName = `/assets/images/skills/fireball/${i.toString().padStart(4, "0")}.png`;
+        this.frames.push(this.textureLoader.load(frameName));
+      }
+      this.spriteMaterial = new SpriteMaterial({
+        map: this.frames[0],
+        transparent: true
       });
-      this.material_02 = new SpriteMaterial({
-        map: this.texture_02,
-        color: 16720384,
-        blending: AdditiveBlending
+      this.sprite = new Sprite(this.spriteMaterial);
+      this.sprite.scale.set(2, 2, 1);
+      this.sprite.position.set(0, 1, 0);
+      this.params.scene.add(this.sprite);
+      this.fireballBody = new Body({
+        mass: 1,
+        shape: new Sphere2(0.5)
       });
-      const sprite_01 = new Sprite(this.material_01);
-      const sprite_02 = new Sprite(this.material_02);
-      sprite_01.scale.set(0.5, 0.5, 0.5);
-      sprite_02.scale.set(0.5, 0.5, 0.5);
-      this.params.scene.add(sprite_01);
-      this.params.scene.add(sprite_02);
+      this.fireballBody.position.set(0, 1, 0);
+      this.fireballBody.velocity.set(0, 0, -10);
+      this.params.world.addBody(this.fireballBody);
     }
+    frameCount = 60;
+    currentFrame = 0;
+    frames = [];
     textureLoader = new TextureLoader();
-    texture_01;
-    texture_02;
-    material_01;
-    material_02;
-    itens = [];
-    update(delta) {
-      this.itens.forEach((item, i) => {
-      });
+    spriteMaterial = new SpriteMaterial();
+    sprite = new Sprite();
+    fireballBody = new Body();
+    _lastRotationY = 0;
+    rotation() {
+      if (this.fireballBody.velocity.x !== 0 || this.fireballBody.velocity.z !== 0) {
+        const targetRotation = Math.atan2(
+          this.fireballBody.velocity.x,
+          this.fireballBody.velocity.z
+        );
+        this.spriteMaterial.rotation = MathUtils.lerp(
+          this.sprite.rotation.y,
+          targetRotation,
+          1
+        );
+        this._lastRotationY = this.spriteMaterial.rotation;
+      } else {
+        this.sprite.rotation.y = this._lastRotationY;
+      }
+    }
+    chase(targetPosition) {
+      const direction = targetPosition.clone().sub(this.fireballBody.position).normalize();
+      this.fireballBody.velocity.set(
+        direction.x * 10,
+        this.fireballBody.velocity.y,
+        direction.z * 10
+      );
+    }
+    update() {
+      this.sprite.position.copy(this.fireballBody.position);
+      this.sprite.quaternion.copy(this.fireballBody.quaternion);
+      this.currentFrame = (this.currentFrame + 1) % this.frames.length;
+      this.spriteMaterial.map = this.frames[this.currentFrame];
+      this.rotation();
     }
   };
 
@@ -32645,13 +32719,22 @@ void main() {
     }
     create() {
       new InputController(this.player);
-      this.fire = new FireSkill({ scene: this.scene });
+      this.fire = new Fireball({ scene: this.scene, world: this.world });
     }
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
       this.actorManager.update(delta);
-      this.fire.update(delta);
+      this.fire.update();
+      if (this.player.body) {
+        this.fire.chase(
+          new Vector3(
+            this.player.body.position.x,
+            this.player.body.position.y,
+            this.player.body.position.z
+          )
+        );
+      }
     }
   };
 
