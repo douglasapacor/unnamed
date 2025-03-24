@@ -8217,145 +8217,6 @@
       }
     }
   };
-  var SpriteMaterial = class extends Material {
-    constructor(parameters) {
-      super();
-      this.isSpriteMaterial = true;
-      this.type = "SpriteMaterial";
-      this.color = new Color(16777215);
-      this.map = null;
-      this.alphaMap = null;
-      this.rotation = 0;
-      this.sizeAttenuation = true;
-      this.transparent = true;
-      this.fog = true;
-      this.setValues(parameters);
-    }
-    copy(source) {
-      super.copy(source);
-      this.color.copy(source.color);
-      this.map = source.map;
-      this.alphaMap = source.alphaMap;
-      this.rotation = source.rotation;
-      this.sizeAttenuation = source.sizeAttenuation;
-      this.fog = source.fog;
-      return this;
-    }
-  };
-  var _geometry;
-  var _intersectPoint = /* @__PURE__ */ new Vector3();
-  var _worldScale = /* @__PURE__ */ new Vector3();
-  var _mvPosition = /* @__PURE__ */ new Vector3();
-  var _alignedPosition = /* @__PURE__ */ new Vector2();
-  var _rotatedPosition = /* @__PURE__ */ new Vector2();
-  var _viewWorldMatrix = /* @__PURE__ */ new Matrix4();
-  var _vA = /* @__PURE__ */ new Vector3();
-  var _vB = /* @__PURE__ */ new Vector3();
-  var _vC = /* @__PURE__ */ new Vector3();
-  var _uvA = /* @__PURE__ */ new Vector2();
-  var _uvB = /* @__PURE__ */ new Vector2();
-  var _uvC = /* @__PURE__ */ new Vector2();
-  var Sprite = class extends Object3D {
-    constructor(material = new SpriteMaterial()) {
-      super();
-      this.isSprite = true;
-      this.type = "Sprite";
-      if (_geometry === void 0) {
-        _geometry = new BufferGeometry();
-        const float32Array = new Float32Array([
-          -0.5,
-          -0.5,
-          0,
-          0,
-          0,
-          0.5,
-          -0.5,
-          0,
-          1,
-          0,
-          0.5,
-          0.5,
-          0,
-          1,
-          1,
-          -0.5,
-          0.5,
-          0,
-          0,
-          1
-        ]);
-        const interleavedBuffer = new InterleavedBuffer(float32Array, 5);
-        _geometry.setIndex([0, 1, 2, 0, 2, 3]);
-        _geometry.setAttribute("position", new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
-        _geometry.setAttribute("uv", new InterleavedBufferAttribute(interleavedBuffer, 2, 3, false));
-      }
-      this.geometry = _geometry;
-      this.material = material;
-      this.center = new Vector2(0.5, 0.5);
-    }
-    raycast(raycaster, intersects) {
-      if (raycaster.camera === null) {
-        console.error('THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.');
-      }
-      _worldScale.setFromMatrixScale(this.matrixWorld);
-      _viewWorldMatrix.copy(raycaster.camera.matrixWorld);
-      this.modelViewMatrix.multiplyMatrices(raycaster.camera.matrixWorldInverse, this.matrixWorld);
-      _mvPosition.setFromMatrixPosition(this.modelViewMatrix);
-      if (raycaster.camera.isPerspectiveCamera && this.material.sizeAttenuation === false) {
-        _worldScale.multiplyScalar(-_mvPosition.z);
-      }
-      const rotation = this.material.rotation;
-      let sin, cos;
-      if (rotation !== 0) {
-        cos = Math.cos(rotation);
-        sin = Math.sin(rotation);
-      }
-      const center = this.center;
-      transformVertex(_vA.set(-0.5, -0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-      transformVertex(_vB.set(0.5, -0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-      transformVertex(_vC.set(0.5, 0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-      _uvA.set(0, 0);
-      _uvB.set(1, 0);
-      _uvC.set(1, 1);
-      let intersect2 = raycaster.ray.intersectTriangle(_vA, _vB, _vC, false, _intersectPoint);
-      if (intersect2 === null) {
-        transformVertex(_vB.set(-0.5, 0.5, 0), _mvPosition, center, _worldScale, sin, cos);
-        _uvB.set(0, 1);
-        intersect2 = raycaster.ray.intersectTriangle(_vA, _vC, _vB, false, _intersectPoint);
-        if (intersect2 === null) {
-          return;
-        }
-      }
-      const distance = raycaster.ray.origin.distanceTo(_intersectPoint);
-      if (distance < raycaster.near || distance > raycaster.far) return;
-      intersects.push({
-        distance,
-        point: _intersectPoint.clone(),
-        uv: Triangle.getInterpolation(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2()),
-        face: null,
-        object: this
-      });
-    }
-    copy(source, recursive) {
-      super.copy(source, recursive);
-      if (source.center !== void 0) this.center.copy(source.center);
-      this.material = source.material;
-      return this;
-    }
-  };
-  function transformVertex(vertexPosition, mvPosition, center, scale, sin, cos) {
-    _alignedPosition.subVectors(vertexPosition, center).addScalar(0.5).multiply(scale);
-    if (sin !== void 0) {
-      _rotatedPosition.x = cos * _alignedPosition.x - sin * _alignedPosition.y;
-      _rotatedPosition.y = sin * _alignedPosition.x + cos * _alignedPosition.y;
-    } else {
-      _rotatedPosition.copy(_alignedPosition);
-    }
-    vertexPosition.copy(mvPosition);
-    vertexPosition.x += _rotatedPosition.x;
-    vertexPosition.y += _rotatedPosition.y;
-    vertexPosition.applyMatrix4(_viewWorldMatrix);
-  }
   var _basePosition = /* @__PURE__ */ new Vector3();
   var _skinIndex = /* @__PURE__ */ new Vector4();
   var _skinWeight = /* @__PURE__ */ new Vector4();
@@ -27119,52 +26980,6 @@ void main() {
   var resolveSingleBilateral_vel1 = new Vec3();
   var resolveSingleBilateral_vel2 = new Vec3();
   var resolveSingleBilateral_vel = new Vec3();
-  var Sphere2 = class extends Shape2 {
-    /**
-     * The radius of the sphere.
-     */
-    /**
-     *
-     * @param radius The radius of the sphere, a non-negative number.
-     */
-    constructor(radius) {
-      super({
-        type: Shape2.types.SPHERE
-      });
-      this.radius = radius !== void 0 ? radius : 1;
-      if (this.radius < 0) {
-        throw new Error("The sphere radius cannot be negative.");
-      }
-      this.updateBoundingSphereRadius();
-    }
-    /** calculateLocalInertia */
-    calculateLocalInertia(mass, target) {
-      if (target === void 0) {
-        target = new Vec3();
-      }
-      const I = 2 * mass * this.radius * this.radius / 5;
-      target.x = I;
-      target.y = I;
-      target.z = I;
-      return target;
-    }
-    /** volume */
-    volume() {
-      return 4 * Math.PI * Math.pow(this.radius, 3) / 3;
-    }
-    updateBoundingSphereRadius() {
-      this.boundingSphereRadius = this.radius;
-    }
-    calculateWorldAABB(pos, quat, min, max) {
-      const r = this.radius;
-      const axes = ["x", "y", "z"];
-      for (let i = 0; i < axes.length; i++) {
-        const ax = axes[i];
-        min[ax] = pos[ax] - r;
-        max[ax] = pos[ax] + r;
-      }
-    }
-  };
   var torque = new Vec3();
   var worldAxis = new Vec3();
   var SPHSystem_getNeighbors_dist = new Vec3();
@@ -29676,71 +29491,6 @@ void main() {
       this.actors.forEach((actor) => {
         actor.update(delta);
       });
-    }
-  };
-
-  // src/lib/Fireball/index.ts
-  var Fireball = class {
-    constructor(params) {
-      this.params = params;
-      for (let i = 1; i <= this.frameCount; i++) {
-        const frameName = `/assets/images/skills/fireball/${i.toString().padStart(4, "0")}.png`;
-        this.frames.push(this.textureLoader.load(frameName));
-      }
-      this.spriteMaterial = new SpriteMaterial({
-        map: this.frames[0],
-        transparent: true
-      });
-      this.sprite = new Sprite(this.spriteMaterial);
-      this.sprite.scale.set(2, 2, 1);
-      this.sprite.position.set(0, 1, 0);
-      this.params.scene.add(this.sprite);
-      this.fireballBody = new Body({
-        mass: 1,
-        shape: new Sphere2(0.5)
-      });
-      this.fireballBody.position.set(0, 1, 0);
-      this.fireballBody.velocity.set(0, 0, -10);
-      this.params.world.addBody(this.fireballBody);
-    }
-    frameCount = 60;
-    currentFrame = 0;
-    frames = [];
-    textureLoader = new TextureLoader();
-    spriteMaterial = new SpriteMaterial();
-    sprite = new Sprite();
-    fireballBody = new Body();
-    _lastRotationY = 0;
-    rotation() {
-      if (this.fireballBody.velocity.x !== 0 || this.fireballBody.velocity.z !== 0) {
-        const targetRotation = Math.atan2(
-          this.fireballBody.velocity.x,
-          this.fireballBody.velocity.z
-        );
-        this.spriteMaterial.rotation = MathUtils.lerp(
-          this.sprite.rotation.y,
-          targetRotation,
-          1
-        );
-        this._lastRotationY = this.spriteMaterial.rotation;
-      } else {
-        this.sprite.rotation.y = this._lastRotationY;
-      }
-    }
-    chase(targetPosition) {
-      const direction = targetPosition.clone().sub(this.fireballBody.position).normalize();
-      this.fireballBody.velocity.set(
-        direction.x * 10,
-        this.fireballBody.velocity.y,
-        direction.z * 10
-      );
-    }
-    update() {
-      this.sprite.position.copy(this.fireballBody.position);
-      this.sprite.quaternion.copy(this.fireballBody.quaternion);
-      this.currentFrame = (this.currentFrame + 1) % this.frames.length;
-      this.spriteMaterial.map = this.frames[this.currentFrame];
-      this.rotation();
     }
   };
 
@@ -32699,12 +32449,31 @@ void main() {
     }
   };
 
+  // src/GUI/PlayerHUD/index.ts
+  var PlayerHUD = class {
+    _container;
+    _element;
+    constructor() {
+      this._container = document.getElementById("ui-container");
+      this._element = document.createElement("div");
+      this._element.style.position = "absolute";
+      this._element.style.background = "white";
+      this._element.style.bottom = "0";
+      this._element.style.left = "0";
+      this._element.style.right = "0";
+      this._element.style.height = "200px";
+      this._container.appendChild(this._element);
+    }
+    update(delta) {
+    }
+  };
+
   // src/scenes/MainScene.ts
   var MainScene = class extends GameScene {
     terrain;
     player;
     actorManager;
-    fire;
+    playerhud;
     preload() {
       this.terrain = new Terrain({ scene: this.scene, world: this.world });
       this.actorManager = new ActorManager();
@@ -32715,25 +32484,17 @@ void main() {
         world: this.world,
         position: new Vec3(0, -3, 0)
       });
+      this.playerhud = new PlayerHUD();
       this.player.preload();
     }
     create() {
       new InputController(this.player);
-      this.fire = new Fireball({ scene: this.scene, world: this.world });
     }
     update(delta) {
       this.terrain.update(delta);
       this.player.update(delta);
       this.actorManager.update(delta);
-      this.fire.update();
       if (this.player.body) {
-        this.fire.chase(
-          new Vector3(
-            this.player.body.position.x,
-            this.player.body.position.y,
-            this.player.body.position.z
-          )
-        );
       }
     }
   };

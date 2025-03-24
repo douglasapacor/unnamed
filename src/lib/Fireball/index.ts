@@ -32,13 +32,13 @@ export class Fireball {
       transparent: true,
     });
     this.sprite = new Sprite(this.spriteMaterial);
-    this.sprite.scale.set(2, 2, 1);
+    this.sprite.scale.set(0.3, 0.3, 1);
     this.sprite.position.set(0, 1, 0);
 
     this.params.scene.add(this.sprite);
 
     this.fireballBody = new Body({
-      mass: 1,
+      mass: 0.2,
       shape: new Sphere(0.5),
     });
     this.fireballBody.position.set(0, 1, 0);
@@ -62,16 +62,16 @@ export class Fireball {
         1
       );
 
-      this._lastRotationY = this.spriteMaterial.rotation;
+      this._lastRotationY = this.sprite.rotation.y;
     } else {
       this.sprite.rotation.y = this._lastRotationY;
     }
   }
 
   chase(targetPosition: Vector3) {
-    const direction = targetPosition
-      .clone()
-      .sub(this.fireballBody.position)
+    const direction = new Vector3();
+    direction
+      .subVectors(targetPosition, this.fireballBody.position)
       .normalize();
 
     this.fireballBody.velocity.set(
