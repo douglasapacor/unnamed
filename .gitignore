@@ -1,2 +1,42 @@
-node_modules
-dist
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Pacotes e cache
+[Pp]ackages/com.unity.package-manager/
+[Pp]ackages/com.unity.render-pipelines.core/
+[Pp]ackages/com.unity.render-pipelines.universal/
+[Pp]ackages/com.unity.render-pipelines.high-definition/
+[Pp]ackages/com.unity.collab-proxy/
+[Pp]ackages/com.unity.textmeshpro/
+[Pp]ackages/com.unity.timeline/
+[Pp]ackages/com.unity.visual-scripting/
+[Pp]ackages/com.unity.shadergraph/
+[Pp]ackages/com.unity.addressables/
+
+# Logs e metadados temporários
+*.log
+*.suo
+*.userprefs
+*.csproj
+*.pidb
+*.sln
+*.swp
+*.bak
+*.ncb
+*.pdb
+*.opendb
+*.VC.db
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Unity Cloud e Collaborate
+[Uu]ser[Ss]ettings/
